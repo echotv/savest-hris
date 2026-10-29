@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, shrink-to-fit=no">
+    <title>CASES | CAD - Computer Aided Dispatch </title>
+    <link rel="icon" type="image/x-icon" href="../src/assets/img/favicon.ico"/>
+    <link href="../layouts/horizontal-light-menu/css/light/loader.css" rel="stylesheet" type="text/css" />
+    <link href="../layouts/horizontal-light-menu/css/dark/loader.css" rel="stylesheet" type="text/css" />
+    <script src="../layouts/horizontal-light-menu/loader.js"></script>
+    <!-- BEGIN GLOBAL MANDATORY STYLES -->
+    <link href="https://fonts.googleapis.com/css?family=Nunito:400,600,700" rel="stylesheet">
+    <link href="../src/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+    <link href="../layouts/horizontal-light-menu/css/light/plugins.css" rel="stylesheet" type="text/css" />
+    <link href="../layouts/horizontal-light-menu/css/dark/plugins.css" rel="stylesheet" type="text/css" />
+    <!-- END GLOBAL MANDATORY STYLES -->
+
+    <!-- BEGIN PAGE LEVEL STYLES -->
+
+    <link href="../src/plugins/src/leaflet/leaflet.css" rel="stylesheet" type="text/css" />
+
+    <link href="../src/assets/css/light/components/modal.css" rel="stylesheet" type="text/css">
+    <link href="../src/assets/css/light/apps/scrumboard.css" rel="stylesheet" type="text/css" />
+    
+    <link href="../src/assets/css/dark/components/modal.css" rel="stylesheet" type="text/css">
+    <link href="../src/assets/css/dark/apps/scrumboard.css" rel="stylesheet" type="text/css" />
+
+
+    <link rel="stylesheet" href="../src/plugins/src/filepond/filepond.min.css">
+    <link rel="stylesheet" href="../src/plugins/src/filepond/FilePondPluginImagePreview.min.css">
+
+    <link href="../src/assets/css/light/scrollspyNav.css" rel="stylesheet" type="text/css" />
+    <link href="../src/plugins/css/light/filepond/custom-filepond.css" rel="stylesheet" type="text/css" />
+    
+    <link href="../src/assets/css/dark/scrollspyNav.css" rel="stylesheet" type="text/css" />
+    <link href="../src/plugins/css/dark/filepond/custom-filepond.css" rel="stylesheet" type="text/css" />
+
+    <!-- END PAGE LEVEL STYLES -->
+
+    <style type="text/css">
+        .no-padding-margin-top-bottom {
+            margin: 0px 20px !important;
+            padding: 0px 0px !important;
+        }
+        .task-header, .task-body {
+/*            text-align: center !important;*/
+        }
+
+        .card {
+            padding-top: 20px !important;
+        }
+
+        .card h5 {
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .info { padding: 6px 8px; font: 14px/16px Arial, Helvetica, sans-serif; background: white; background: rgba(255,255,255,0.8); box-shadow: 0 0 15px rgba(0,0,0,0.2); border-radius: 5px; } .info h4 { margin: 0 0 5px; color: #777; }
+
+        .legend { text-align: left; line-height: 18px; color: #555; } .legend i { width: 18px; height: 18px; float: left; margin-right: 8px; opacity: 0.7; }
+
+        .leaflet-map {
+            border-radius: 8px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .menu:not(.hidden) {
+            margin-left: 30px !important; /* Adjust spacing dynamically */
+        }
+
+        .task-body .task-bottom {
+            padding: 0px 15px !important;
+            margin-bottom: 10px;
+        }
+
+    </style>
+</head>
+<body class="layout-boxed">
+    
+    <!-- BEGIN LOADER -->
+    <div id="load_screen"> <div class="loader"> <div class="loader-content">
+        <div class="spinner-grow align-self-center"></div>
+    </div></div></div>
+    <!--  END LOADER -->
+
+    <!--  BEGIN NAVBAR  -->
+    <div class="header-container container-xxl">
+        <header class="header navbar navbar-expand-sm expand-header">
+
+            <a href="javascript:void(0);" class="sidebarCollapse" data-placement="bottom"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-menu"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></a>
+            
+            <ul class="navbar-item theme-brand flex-row  text-center">
+                <li class="nav-item theme-logo">
+                    <a href="index.html">
+                        <img src="../src/assets/img/logo2.svg" class="navbar-logo" alt="logo">
+                    </a>
+                </li>
+                <li class="nav-item theme-text">
+                    <a href="index.html" class="nav-link"> CAD </a>
+                </li>
+            </ul>
+
+            <ul class="navbar-item flex-row ms-lg-auto ms-0 action-area">
+                <li class="nav-item theme-toggle-item">
+                    <a href="javascript:void(0);" class="nav-link theme-toggle">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-moon dark-mode"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-sun light-mode"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                    </a>
+                </li>
+
+                <li class="nav-item dropdown user-profile-dropdown  order-lg-0 order-1">
+                    <a href="javascript:void(0);" class="nav-link dropdown-toggle user" id="userProfileDropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <div class="avatar-container">
+                            <div class="avatar avatar-sm avatar-indicators avatar-online">
+                                <img alt="avatar" src="../src/assets/img/profile-30.png" class="rounded-circle">
+                            </div>
+                        </div>
+                    </a>
+
+                    <div class="dropdown-menu position-absolute" aria-labelledby="userProfileDropdown">
+                        <div class="user-profile-section">
+                            <div class="media mx-auto">
+                                <div class="emoji me-2">
+                                    &#x1F44B;
+                                </div>
+                                <div class="media-body">
+                                    <h5>Shaun Park</h5>
+                                    <p id="role"></p>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- <div class="dropdown-item">
+                            <a href="user-profile.html">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-user"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> <span>Profile</span>
+                            </a>
+                        </div> -->
+                        <div class="dropdown-item">
+                            <a href="auth-boxed-signin.html">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-log-out"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg> <span>Log Out</span>
+                            </a>
+                        </div>
+                    </div>
+                    
+                </li>
+            </ul>
+        </header>
+    </div>
+    <!--  END NAVBAR  -->
+
+    <!--  BEGIN MAIN CONTAINER  -->
+    <div class="main-container " id="container">
+
+        <div class="overlay"></div>
+        <div class="search-overlay"></div>
+
+        <!--  BEGIN SIDEBAR  -->
+        <div class="sidebar-wrapper sidebar-theme">
+
+            <nav id="sidebar">
+
+                <div class="navbar-nav theme-brand flex-row  text-center">
+                    <div class="nav-logo">
+                        <div class="nav-item theme-logo">
+                            <a href="./index.html">
+                                <img src="../src/assets/img/logo.svg" class="navbar-logo" alt="logo">
+                            </a>
+                        </div>
+                        <div class="nav-item theme-text">
+                            <a href="./index.html" class="nav-link"> CORK </a>
+                        </div>
+                    </div>
+                    <div class="nav-item sidebar-toggle">
+                        <div class="btn-toggle sidebarCollapse">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-left"><polyline points="11 17 6 12 11 7"></polyline><polyline points="18 17 13 12 18 7"></polyline></svg>
+                        </div>
+                    </div>
+                </div>
+                <div class="shadow-bottom"></div>
+                <ul class="list-unstyled menu-categories" id="accordionExample">
+                    <li class="menu" id="admin-section">
+                        <a href="#dashboard" data-bs-toggle="dropdown" aria-expanded="false" class="dropdown-toggle">
+                            <div class="">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-home"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                                <span>Dashboard</span>
+                            </div>
+                            <div>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                            </div>
+                        </a>
+                        <ul class="dropdown-menu submenu list-unstyled" id="dashboard" data-bs-parent="#accordionExample">
+                            <li>
+                                <a href="./index.html"> Analytics </a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    <li class="menu menu-heading">
+                        <div class="heading"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-minus"><line x1="5" y1="12" x2="19" y2="12"></line></svg><span>APPLICATIONS</span></div>
+                    </li>
+
+                    <li class="menu" id="calltaker-section">
+                        <a href="#apps" data-bs-toggle="dropdown" aria-expanded="true" class="dropdown-toggle">
+                            <div class="">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-cpu"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect><rect x="9" y="9" width="6" height="6"></rect><line x1="9" y1="1" x2="9" y2="4"></line><line x1="15" y1="1" x2="15" y2="4"></line><line x1="9" y1="20" x2="9" y2="23"></line><line x1="15" y1="20" x2="15" y2="23"></line><line x1="20" y1="9" x2="23" y2="9"></line><line x1="20" y1="14" x2="23" y2="14"></line><line x1="1" y1="9" x2="4" y2="9"></line><line x1="1" y1="14" x2="4" y2="14"></line></svg>
+                                <span>Reports</span>
+                            </div>
+                            <div>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                            </div>
+                        </a>
+                        <ul class="dropdown-menu submenu list-unstyled" id="apps" data-bs-parent="#accordionExample">
+                            <li class="active">
+                                <a href="./app-scrumboard.html"> Cases Board </a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    <li class="menu" id="dispatcher-section">
+                        <a href="#apps" data-bs-toggle="dropdown" aria-expanded="true" class="dropdown-toggle">
+                            <div class="">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-cpu"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect><rect x="9" y="9" width="6" height="6"></rect><line x1="9" y1="1" x2="9" y2="4"></line><line x1="15" y1="1" x2="15" y2="4"></line><line x1="9" y1="20" x2="9" y2="23"></line><line x1="15" y1="20" x2="15" y2="23"></line><line x1="20" y1="9" x2="23" y2="9"></line><line x1="20" y1="14" x2="23" y2="14"></line><line x1="1" y1="9" x2="4" y2="9"></line><line x1="1" y1="14" x2="4" y2="14"></line></svg>
+                                <span>Apps</span>
+                            </div>
+                            <div>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                            </div>
+                        </a>
+                        <ul class="dropdown-menu submenu list-unstyled" id="apps" data-bs-parent="#accordionExample">
+                            <li class="active">
+                                <a href="./app-scrumboard.html"> Cases Board </a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    
+                </ul>
+                
+            </nav>
+
+        </div>
+        <!--  END SIDEBAR  -->
+        
+        <!--  BEGIN CONTENT AREA  -->
+        <div id="content" class="main-content">
+            <div class="layout-px-spacing">
+
+                <div class="middle-content container-xxl p-0">
+
+                    <!--  BEGIN BREADCRUMBS  -->
+                    <div class="secondary-nav">
+                        <div class="breadcrumbs-container" data-page-heading="Analytics">
+                            <header class="header navbar navbar-expand-sm">
+                                <a href="javascript:void(0);" class="btn-toggle sidebarCollapse" data-placement="bottom">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-menu"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                                </a>
+                                <div class="d-flex breadcrumb-content">
+                                    <div class="page-header">
+
+                                        <div class="page-title">
+                                        </div>
+                        
+                                        <nav class="breadcrumb-style-one" aria-label="breadcrumb">
+                                            <ol class="breadcrumb">
+                                                <li class="breadcrumb-item"><a href="#">App</a></li>
+                                                <li class="breadcrumb-item active" aria-current="page">Scrumboard</li>
+                                            </ol>
+                                        </nav>
+                        
+                                    </div>
+                                </div>
+                                <ul class="navbar-nav flex-row ms-auto breadcrumb-action-dropdown">
+                                    <li class="nav-item more-dropdown">
+                                        <div class="dropdown  custom-dropdown-icon">
+                                            <a class="dropdown-toggle btn" href="#" role="button" id="customDropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                <span>Settings</span>
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-down custom-dropdown-arrow"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                                            </a>
+                        
+                                            <div class="dropdown-menu dropdown-menu-right" aria-labelledby="customDropdown">
+
+                                                <a class="dropdown-item" data-value="Settings" data-icon="<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; class=&quot;feather feather-settings&quot;><circle cx=&quot;12&quot; cy=&quot;12&quot; r=&quot;3&quot;></circle><path d=&quot;M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z&quot;></path></svg>" href="javascript:void(0);">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-settings"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg> Settings
+                                                </a>
+
+                                                <a class="dropdown-item" data-value="Mail" data-icon="<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; class=&quot;feather feather-mail&quot;><path d=&quot;M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z&quot;></path><polyline points=&quot;22,6 12,13 2,6&quot;></polyline></svg>" href="javascript:void(0);">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-mail"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg> Mail
+                                                </a>
+
+                                                <a class="dropdown-item" data-value="Print" data-icon="<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; class=&quot;feather feather-printer&quot;><polyline points=&quot;6 9 6 2 18 2 18 9&quot;></polyline><path d=&quot;M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2&quot;></path><rect x=&quot;6&quot; y=&quot;14&quot; width=&quot;12&quot; height=&quot;8&quot;></rect></svg>" href="javascript:void(0);">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-printer"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg> Print
+                                                </a>
+
+                                                <a class="dropdown-item" data-value="Download" data-icon="<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; class=&quot;feather feather-download&quot;><path d=&quot;M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4&quot;></path><polyline points=&quot;7 10 12 15 17 10&quot;></polyline><line x1=&quot;12&quot; y1=&quot;15&quot; x2=&quot;12&quot; y2=&quot;3&quot;></line></svg>" href="javascript:void(0);">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-download"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg> Download
+                                                </a>
+
+                                                <a class="dropdown-item" data-value="Share" data-icon="<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; class=&quot;feather feather-share-2&quot;><circle cx=&quot;18&quot; cy=&quot;5&quot; r=&quot;3&quot;></circle><circle cx=&quot;6&quot; cy=&quot;12&quot; r=&quot;3&quot;></circle><circle cx=&quot;18&quot; cy=&quot;19&quot; r=&quot;3&quot;></circle><line x1=&quot;8.59&quot; y1=&quot;13.51&quot; x2=&quot;15.42&quot; y2=&quot;17.49&quot;></line><line x1=&quot;15.41&quot; y1=&quot;6.51&quot; x2=&quot;8.59&quot; y2=&quot;10.49&quot;></line></svg>" href="javascript:void(0);">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-share-2"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg> Share
+                                                </a>
+                                                
+                                            </div>
+                        
+                                        </div>
+                                    </li>
+                                </ul>
+                            </header>
+                        </div>
+                    </div>
+                    <!--  END BREADCRUMBS  -->
+    
+                    <div class="action-btn layout-top-spacing mb-3">
+                        <!-- <button id="add-list" class="btn btn-secondary">Add List</button> -->
+                        <button class="btn btn-secondary" id="add-new-case"> Add New Case </button>
+                    </div>
+                    <div class="modal modal-xl fade" id="addTaskModal" tabindex="-1" role="dialog" aria-labelledby="addTaskModalTitle" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="add-task-title modal-title" id="addTaskModalTitleLabel1">Add Case</h5>
+                                    <h5 class="edit-task-title modal-title" id="addTaskModalTitleLabel2">Edit Case</h5>
+                                  <h5 class="view-task-title modal-title" id="addTaskModalTitleLabel3">View Case</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+                                      <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-x"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                                    </button>
+                                </div>
+                                
+                                <div class="modal-body">
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <div class="compose-box">
+                                                <div class="compose-content" id="addTaskModalTitle">
+                                                    <div class="addTaskAccordion" id="add_task_accordion">
+                                                        <div class="task-content task-text-progress">
+                                                            <div id="collapseTwo" class="collapse show" data-parent="#add_task_accordion">
+                                                                <div class="task-content-body">
+                                                                    <form action="javascript:void(0);">
+                                                                        <div class="row">
+                                                                            <div class="col-md-12">
+                                                                                <div class="task-title mb-4">
+                                                                                    (note: this part will be autogenerated once backend development starts)
+                                                                                    <input required id="s-case" type="text" placeholder="Case #" class="form-control" name="task">
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+
+
+
+                                                                        <div class="row">
+                                                                            <div class="col-md-12">
+                                                                                <div class="task-title mb-4 form-group">
+                                                                                    <label for="s-person">Caller Name <span class="text-danger">*</span></label>
+                                                                                    <input required id="s-person" placeholder="Caller Name" class="form-control" name="personName">
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+
+                                                                        <div class="row">
+                                                                            <div class="col-md-12">
+                                                                                <div class="task-badge mb-4 form-group">
+                                                                                    <label for="s-address">Exact Location <span class="text-danger">*</span></label>
+                                                                                    <textarea required id="s-address" placeholder="Address" class="form-control" name="address" rows="4" readonly></textarea>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+
+                                                                        
+                                                                        <input type="hidden" id="latitude" placeholder="Latitude" class="form-control" name="latitude">
+                                                              
+                                                                        <input type="hidden" id="longitude" placeholder="Longitude" class="form-control" name="longitude">
+                                                                               
+
+                                                                        <div class="row">
+                                                                            <div class="col-md-12">
+                                                                                <div class="task-title mb-4 form-group">
+                                                                                    <label for="s-contact">Contact Number <span class="text-danger">*</span></label>
+                                                                                    <input required id="s-contact" placeholder="Contact No." class="form-control" name="contactNumber">
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+
+                                                                        <div class="row">
+                                                                            <div class="col-md-12">
+                                                                                <div class="task-title mb-4 form-group">
+                                                                                    <label for="s-type">Incident Type <span class="text-danger">*</span></label>
+                                                                                    <select required id="s-type" placeholder="Case Type" name="task" class="form-control">
+                                                                                        <option value="(Fire Incident)">Fire Incident</option>
+                                                                                        <option value="(Vehicular Accident)">Vehicular Accident</option>
+                                                                                    </select>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+
+                                                                        <div class="row">
+                                                                            <div class="col-md-12">
+                                                                                <div class="task-badge mb-4 form-group">
+                                                                                    <label for="s-description">Description of Incident <span class="text-danger">*</span></label>
+                                                                                    <textarea required id="s-description" placeholder="Description" class="form-control" name="description"></textarea>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+
+                                                                        <div class="row">
+                                                                            <div class="col-md-12">
+                                                                                <label for="s-person">Needed Responders <span class="text-danger">*</span></label>
+                                                                            </div>
+                                                                            <div class="col-md-6">
+                                                                                <div class="form-group">
+                                                                                    <div class="form-check form-check-primary">
+                                                                                        <input class="form-check-input" type="checkbox" id="form-check-pnp">
+                                                                                        <label class="form-check-label" for="form-check-pnp">
+                                                                                            PNP
+                                                                                        </label>
+                                                                                    </div>
+                                                                                    <div class="form-check form-check-primary">
+                                                                                        <input class="form-check-input" type="checkbox" id="form-check-ems">
+                                                                                        <label class="form-check-label" for="form-check-ems">
+                                                                                            EMS
+                                                                                        </label>
+                                                                                    </div>
+                                                                                    <div class="form-check form-check-primary">
+                                                                                        <input class="form-check-input" type="checkbox" id="form-check-coastguard">
+                                                                                        <label class="form-check-label" for="form-check-coastguard">
+                                                                                            COAST GUARD
+                                                                                        </label>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                            <div class="col-md-6">
+                                                                                <div class="form-group">
+
+                                                                                    <div class="form-check form-check-primary">
+                                                                                        <input class="form-check-input" type="checkbox" id="form-check-bfp">
+                                                                                        <label class="form-check-label" for="form-check-bfp">
+                                                                                            BFP
+                                                                                        </label>
+                                                                                    </div>
+
+                                                                                    <div class="form-check form-check-primary">
+                                                                                        <input class="form-check-input" type="checkbox" id="form-check-brgy">
+                                                                                        <label class="form-check-label" for="form-check-brgy">
+                                                                                            BRGY. OFFICAL
+                                                                                        </label>
+                                                                                    </div>
+
+                                                                                    <div class="form-check form-check-primary">
+                                                                                        <input class="form-check-input" type="checkbox" id="form-check-drrmo">
+                                                                                        <label class="form-check-label" for="form-check-drrmo">
+                                                                                            DRRMO
+                                                                                        </label>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+            
+                                                                    </form>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-8">
+                                            <div id="basic-map" class="leaflet-map" style="height: 100%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button data-btnfn="discardTask" class="btn" data-bs-dismiss="modal"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-x"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg> <span class="btn-text-inner">Discard</span></button>
+                                    <button data-btnfn="addTask" class="btn add-tsk btn-primary">Add Case</button>
+                                    <button data-btnfn="editTask" class="btn edit-tsk btn-primary" style="display: none;">Save</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Modal for confirmation -->
+                    <div id="confirmationModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="confirmationModalLabel" aria-hidden="true">
+                      <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                          <div class="modal-header">
+                            <h5 class="modal-title" id="confirmationModalLabel">Take Case</h5>
+`                          </div>
+                          <div class="modal-body">
+                            <p>Are you sure you want to take this case?</p>
+                          </div>
+                          <div class="modal-footer">
+                            <button class="btn" data-bs-dismiss="modal"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-x"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg> <span class="btn-text-inner">Discard</span></button>
+                            <button type="button" class="btn btn-primary" id="confirmNextTask">Confirm</button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+    
+                    <div class="modal fade" id="addListModal" tabindex="-1" role="dialog" aria-labelledby="addListModalTitle" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title add-list-title" id="addListModalTitleLabel1">Add List</h5>
+                                    <h5 class="modal-title edit-list-title" id="addListModalTitleLabel2">Edit List</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+                                      <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-x"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="compose-box">
+                                        <div class="compose-content" id="addListModalTitle">
+                                            <form action="javascript:void(0);">
+                                                <div class="row">
+                                                    <div class="col-md-12">
+                                                        <div class="list-title d-flex">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-list me-3 align-self-center"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3" y2="6"></line><line x1="3" y1="12" x2="3" y2="12"></line><line x1="3" y1="18" x2="3" y2="18"></line></svg>
+                                                            <input id="s-list-name" type="text" placeholder="List Name" class="form-control" name="task">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button class="btn" data-bs-dismiss="modal"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-x"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg> <span class="btn-text-inner">Discard</span></button>
+                                    <button class="btn add-list btn-primary">Add List</button>
+                                    <button class="btn edit-list btn-success" style="display: none;">Save</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal fade" id="taskCloseModal" tabindex="-1" aria-labelledby="taskCloseModalLabel" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="taskCloseModalLabel">Close Case</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <p>Are you sure you want to close this case?</p>
+                                    <div class="compose-box">
+                                                <div class="compose-content" id="addTaskModalTitle">
+                                                    <div class="addTaskAccordion" id="add_task_accordion">
+                                                        <div class="task-content task-text-progress">
+                                                            <div id="collapseTwo" class="collapse show" data-parent="#add_task_accordion">
+                                                                <div class="task-content-body">
+                                                                    <form action="javascript:void(0);">
+                                                                        <div class="row">
+                                                                            <div class="col-md-12">
+                                                                                <div class="task-title mb-4 form-group">
+                                                                                    <label for="s-f-status">Final Status <span class="text-danger">*</span></label>
+                                                                                    <select required id="s-f-status" type="text" placeholder="Final Status" name="f-status" class="form-control">
+                                                                                        <option value="Resolved">Resolved</option>
+                                                                                        <option value="Dismissed">Dismissed</option>
+                                                                                        <option value="Unfounded">Unfounded</option>
+                                                                                    </select>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+
+
+                                                                        <div class="row">
+                                                                            <div class="col-md-12">
+                                                                                <div class="task-badge mb-4 form-group">
+                                                                                    <label for="s-action">Actions Taken <span class="text-danger">*</span></label>
+                                                                                    <textarea required id="s-action" placeholder="Actions Taken" class="form-control" name="action"></textarea>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+
+                                                                        <div class="row">
+                                                                            <div class="col-md-12">
+                                                                                <div class="task-badge mb-4 form-group">
+                                                                                    <label for="s-notes">Additional Notes / Follow up Instructions </label>
+                                                                                    <textarea required id="s-notes" placeholder="Additional Notes / Follow up Instructions" class="form-control" name="notes"></textarea>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+
+                                                                        <div class="row">
+                                                                            <div class="col-md-12">
+                                                                                <div class="task-badge mb-4 form-group">
+                                                                                    <label for="s-dropbox">
+                                                                                        Supporting Documents
+                                                                                    </label>
+                                                                                    <div class="multiple-file-upload">
+                                                                                        <input type="file" 
+                                                                                            class="filepond file-upload-multiple"
+                                                                                            name="filepond" 
+                                                                                            multiple 
+                                                                                            data-allow-reorder="true"
+                                                                                            data-max-file-size="3MB"
+                                                                                            data-max-files="3" />
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    </form>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button class="btn" data-bs-dismiss="modal"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-x"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg> <span class="btn-text-inner">Discard</span></button>
+                                    <button type="button" class="btn btn-primary" id="closeTaskButton">Confirm</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+    
+                    <!-- Modal -->
+                    <div class="modal fade" id="deleteConformation" tabindex="-1" role="dialog" aria-labelledby="deleteConformationLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered" role="document">
+                            <div class="modal-content" id="deleteConformationLabel">
+                                <div class="modal-header">
+                                    <div class="icon">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-trash-2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                                    </div>
+                                    <h5 class="modal-title" id="exampleModalLabel">Delete the task?</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    <p class="">If you delete this case it will be gone forever. Are you sure you want to proceed?</p>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn" data-bs-dismiss="modal">Cancel</button>
+                                    <button type="button" class="btn btn-danger" data-remove="task">Delete</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+    
+                    <div class="row scrumboard" id="cancel-row">
+                        <div class="col-lg-12 layout-spacing">
+    
+                            <div class="task-list-section g-4 row">
+    
+                                <div data-section="s-new" class="col-md-4" data-connect="sorting">
+                                    <div class="connect-sorting">
+                                        <div class="task-container-header">
+                                            <h6 class="s-heading bg-warning p-3 rounded w-100 text-center text-white" data-listTitle="Pending">PENDING</h6>
+                                        </div>
+    
+                                        <div class="connect-sorting-content case-section" data-sortable="true">
+                                            <div data-draggable="true" class="card task-text-progress style-4" >
+                                                <div class="card-body">
+                                                    <div class="task-body">
+                                                        <div class="task-bottom">
+                                                            <div class="tb-section-1">
+                                                                <span data-taskdate="16 Feb, 2025"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg> 16 Feb, 2025</span>
+                                                            </div>
+                                                            <div class="tb-section-2">
+                                                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-edit-2 s-case-edit edit edit-delete-calltaker"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
+                                                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-trash-2 s-case-delete edit-delete-calltaker"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                                                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-edit-2 s-case-edit view" style="cursor: pointer;">
+                                                                    <path d="M1 12s3-7 11-7 11 7 11 7-3 7-11 7-11-7-11-7z"></path>
+                                                                    <circle cx="12" cy="12" r="3"></circle>
+                                                                </svg>
+                                                          </div>
+                                                        </div>
+                                                        <div class="case-title">
+                                                            <h5 class="no-padding-margin-top-bottom" data-caseNo="Case #102">Case #102</h5>
+                                                            <p class="no-padding-margin-top-bottom" data-caseType="(Fire Incident)" >(Fire Incident) </p>
+                                                        </div>
+                                                    </div>
+    
+                                                    <div class="task-body mb-2">
+
+                                                        <div class="task-content">
+                                                            <u><p class="no-padding-margin-top-bottom" data-personName="Andres Bonifacio">John Domagco</p></u>
+                                                            <p class="no-padding-margin-top-bottom" data-address="ABC Street, Pangpang">EFG Street, Bibincahan</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="card-footer">
+                                                    <div class="take-case-dispatcher task-take-case-area">
+                                                    </div>
+
+                                                    <div class="close-case-dispatcher task-close-case-area">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div data-draggable="true" class="card task-text-progress style-4">
+                                                <div class="card-body">
+                                                    <div class="task-body">
+                                                        <div class="task-bottom">
+                                                            <div class="tb-section-1">
+                                                                <span data-taskdate="16 Feb, 2025"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg> 17 Feb, 2025</span>
+                                                            </div>
+                                                            <div class="tb-section-2 edit-delete-calltaker" >
+                                                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-edit-2 s-case-edit edit edit-delete-calltaker"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
+                                                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-trash-2 s-case-delete edit-delete-calltaker"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                                                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-edit-2 s-case-edit view" style="cursor: pointer;">
+                                                                    <path d="M1 12s3-7 11-7 11 7 11 7-3 7-11 7-11-7-11-7z"></path>
+                                                                    <circle cx="12" cy="12" r="3"></circle>
+                                                                </svg>
+                                                          </div>
+                                                        </div>
+                                                        <div class="case-title">
+                                                            <h5 class="no-padding-margin-top-bottom" data-caseNo="Case #101">Case #101</h5>
+                                                            <p class="no-padding-margin-top-bottom" data-caseType="(Vehicular Accident)" >(Vehicular Accident) </p>
+                                                        </div>
+                                                    </div>
+    
+                                                    <div class="task-body mb-2">
+
+                                                        <div class="task-content">
+                                                            <u><p class="no-padding-margin-top-bottom" data-personName="Andres Bonifacio">Andres Bonifacio</p></u>
+                                                            <p class="no-padding-margin-top-bottom" data-address="ABC Street, Pangpang">ABC Street, Pangpang</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="card-footer">
+                                                    <div class="take-case-dispatcher task-take-case-area">
+                                                    </div>
+
+                                                    <div class="close-case-dispatcher task-close-case-area">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+    
+                                        <div class="add-s-task hidden">
+                                            <a class="addTask" id="add-task"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-plus-circle"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg> Add Task</a>
+                                        </div>
+    
+                                    </div>
+                                </div>
+    
+                                <div data-section="s-in-progress" class="col-md-4" data-connect="sorting">
+                                    <div class="connect-sorting">
+                                        <div class="task-container-header">
+                                            <h6 class="s-heading bg-success p-3 rounded w-100 text-center text-white" data-listTitle="Active">ACTIVE</h6>
+                                        </div>
+    
+                                        <div class="connect-sorting-content active-section" data-sortable="true">
+                                        </div>
+                                    </div>
+                                </div>
+    
+                                <div data-section="s-approved" class="col-md-4" data-connect="sorting">
+    
+                                    <div class="connect-sorting">
+                                        <div class="task-container-header">
+                                            <h6 class="s-heading bg-info text-white p-3 rounded w-100 text-center" data-listTitle="Case Closed">CASE CLOSED</h6>
+                                        </div>
+
+                                        <div class="connect-sorting-content case-closed-section" data-sortable="true">
+    
+                                        </div>
+                                    </div>
+                                </div>
+    
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                
+            </div>
+
+            <!--  BEGIN FOOTER  -->
+            <div class="footer-wrapper mt-0">
+                <div class="footer-section f-section-1">
+                    <p class="">Copyright © <span class="dynamic-year">2022</span> <a target="_blank" href="https://designreset.com/cork-admin/">DesignReset</a>, All rights reserved.</p>
+                </div>
+                <div class="footer-section f-section-2">
+                    <p class="">Coded with <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-heart"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg></p>
+                </div>
+            </div>
+            <!--  END FOOTER  -->
+        </div>
+        <!--  END CONTENT AREA  -->
+        
+    </div>
+    <!-- END MAIN CONTAINER -->
+
+    <!-- BEGIN GLOBAL MANDATORY SCRIPTS -->
+    <script src="../src/plugins/src/global/vendors.min.js"></script>
+    <script src="../src/plugins/src/jquery-ui/jquery-ui.min.js"></script>
+    <script src="../src/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="../src/plugins/src/perfect-scrollbar/perfect-scrollbar.min.js"></script>
+    <script src="../src/plugins/src/mousetrap/mousetrap.min.js"></script>
+    <script src="../src/plugins/src/waves/waves.min.js"></script>
+    <script src="../layouts/horizontal-light-menu/app.js"></script>
+    <!-- END GLOBAL MANDATORY SCRIPTS -->
+
+    <!-- BEGIN PAGE LEVEL PLUGINS -->
+    <!-- <script src="../src/plugins/src/leaflet/us-states.js"></script>
+    <script src="../src/plugins/src/leaflet/eu-countries.js"></script> -->
+    <script src="../src/plugins/src/leaflet/leaflet.js"></script>
+    <!-- END PAGE LEVEL PLUGINS -->
+    
+    <!--  BEGIN CUSTOM SCRIPTS FILE  -->
+    <!-- <script src="../src/plugins/src/leaflet/leaflet_script.js"></script> -->
+    <!-- END CUSTOM SCRIPTS FILE -->
+
+    <!-- BEGIN PAGE LEVEL SCRIPTS -->
+    <script src="../src/assets/js/apps/scrumboard.js"></script>
+    <!-- END PAGE LEVEL SCRIPTS -->
+
+    <!-- FILEPOND -->
+    <script src="../src/plugins/src/highlight/highlight.pack.js"></script>
+
+    <script src="../src/plugins/src/filepond/filepond.min.js"></script>
+    <script src="../src/plugins/src/filepond/FilePondPluginFileValidateType.min.js"></script>
+    <script src="../src/plugins/src/filepond/FilePondPluginImageExifOrientation.min.js"></script>
+    <script src="../src/plugins/src/filepond/FilePondPluginImagePreview.min.js"></script>
+    <script src="../src/plugins/src/filepond/FilePondPluginImageCrop.min.js"></script>
+    <script src="../src/plugins/src/filepond/FilePondPluginImageResize.min.js"></script>
+    <script src="../src/plugins/src/filepond/FilePondPluginImageTransform.min.js"></script>
+    <script src="../src/plugins/src/filepond/filepondPluginFileValidateSize.min.js"></script>
+    <!-- <script src="../src/plugins/src/filepond/custom-filepond.js"></script> -->
+    <!-- FILEPOND -->
+
+    <script type="text/javascript">
+       // Define the bounds for Manila, Philippines
+var bounds = L.latLngBounds(
+    L.latLng(14.5410, 120.9446),  // Southwest corner
+    L.latLng(14.7216, 121.1017)   // Northeast corner
+);
+
+// Create a map and set the initial view to Manila, Philippines
+var map = L.map('basic-map', {
+    center: [14.5995, 120.9842], // Manila center coordinates
+    zoom: 13,                    // Suitable zoom level for Manila
+    dragging: true,              // Enable map dragging
+    maxBounds: bounds,           // Restrict map view to Manila
+    maxBoundsViscosity: 1.0      // Prevent panning outside bounds
+});
+
+// Add OpenStreetMap tiles
+var tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 18,
+    attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, ' +
+        'Imagery © <a href="https://www.mapbox.com/">Mapbox</a>'
+}).addTo(map);
+
+// Declare a global variable to store the current marker
+var currentMarker;
+
+// Function to update the popup with the address and set it to the input fields
+function updatePopup(latlng, customMarker) {
+    var url = `https://nominatim.openstreetmap.org/reverse?lat=${latlng.lat}&lon=${latlng.lng}&format=json`;
+
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            let address = data.display_name || "Unknown location";
+            customMarker.bindPopup("<b>Location:</b> " + address).openPopup();
+
+            // Set the address to the input field with ID 's-address'
+            document.getElementById('s-address').value = address;
+
+            // Set the latitude and longitude to the hidden inputs
+            document.getElementById('latitude').value = latlng.lat;
+            document.getElementById('longitude').value = latlng.lng;
+        })
+        .catch(() => {
+            let errorText = "Unable to fetch address";
+            customMarker.bindPopup("<b>Location:</b> " + errorText).openPopup();
+            document.getElementById('s-address').value = errorText;
+
+            // Set the latitude and longitude to the hidden inputs
+            document.getElementById('latitude').value = latlng.lat;
+            document.getElementById('longitude').value = latlng.lng;
+        });
+}
+
+// Listen for map clicks to add a new marker
+map.on('click', function (e) {
+    // Check if the clicked location is within bounds
+    if (!bounds.contains(e.latlng)) {
+        alert("Please click within Manila only!");
+        return;
+    }
+
+    // Remove the previous marker if it exists
+    if (currentMarker) {
+        map.removeLayer(currentMarker);
+    }
+
+    // Create a new fixed (non-draggable) marker at the clicked location
+    currentMarker = L.marker(e.latlng).addTo(map);
+    updatePopup(e.latlng, currentMarker); // Set address and coordinates for the new marker
+});
+
+
+        $('#addTaskModal').on('shown.bs.modal', function () {
+            map.invalidateSize(); // This forces the map to recalculate its size
+        });
+
+        $('#add-new-case').on('click', function () {
+            $('#add-task').click();
+        });
+
+        // ROLE
+        const role = localStorage.getItem('role'); // Get role from localStorage
+
+        if (role !== 'admin') {
+            $('#admin-section').addClass('hidden');
+        }
+        if (role !== 'dispatcher') {
+            $('#dispatcher-section').addClass('hidden');
+            $('.take-case-dispatcher').addClass('hidden');
+            $('.close-case-dispatcher').addClass('hidden');
+        }
+        if (role !== 'calltaker') {
+            $('#calltaker-section').addClass('hidden');
+            $('#add-new-case').addClass('hidden');
+            $('.edit-delete-calltaker').addClass('hidden');
+        }
+
+        $('#role').html(role);
+
+        // dropbox
+        /**
+         * ====================
+         * Multiple File Upload
+         * ====================
+        */
+
+        // We want to preview images, so we register
+        // the Image Preview plugin, We also register 
+        // exif orientation (to correct mobile image
+        // orientation) and size validation, to prevent
+        // large files from being added
+        FilePond.registerPlugin(
+            FilePondPluginImagePreview,
+            FilePondPluginImageExifOrientation,
+            FilePondPluginFileValidateSize,
+            // FilePondPluginImageEdit
+        );
+          
+          // Select the file input and use 
+          // create() to turn it into a pond
+          FilePond.create(
+            document.querySelector('.file-upload-multiple')
+          );
+    </script>
+</body>
+</html>

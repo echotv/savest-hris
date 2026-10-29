@@ -1,0 +1,7 @@
+DirectoryIndex horizontal-light-menu/auth-boxed-signin.html
+
+RewriteEngine On
+
+# Ensure root URL redirects to the signin page
+RewriteCond %{REQUEST_URI} ^/$
+RewriteRule ^$ /horizontal-light-menu/auth-boxed-signin.html [L,R=302]

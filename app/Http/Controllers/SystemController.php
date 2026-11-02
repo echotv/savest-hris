@@ -11,7 +11,7 @@ use App\Models\SystemLogsModel;
 use App\Models\UserTypeModel;
 use App\Models\UserPrivilegeModel;
 use App\Models\AssignedBranchModel;
-use App\Models\BranchModel;
+use App\Models\BranchWorkplaceModel;
 use App\Models\SalaryGrade;
 use App\Models\PositionsModel;
 use App\Models\EmploymentStatusModel;
@@ -31,7 +31,7 @@ class SystemController extends Controller
         // (not a query built once) so each call starts a fresh builder instead
         // of accumulating conditions from a previous use.
         $employeesBase = function () {
-            return AssignedBranchModel::join('employee', 'assigned_branches.branch_code', '=', 'employee.branch_code')
+            return AssignedBranchModel::join('employee', 'assigned_branches.brwp_id', '=', 'employee.brwp_id')
                 ->where('employee.is_deleted', 0)
                 ->where('assigned_branches.ut_id', Auth::user()->ut_id);
         };
@@ -88,12 +88,12 @@ class SystemController extends Controller
         $data =[
             'title' => 'Dashboard - SAVEST HRIS',
             'menu' => 'Dashboard',
-            'num_active' => AssignedBranchModel::join('employee', 'assigned_branches.branch_code', '=', 'employee.branch_code')
+            'num_active' => AssignedBranchModel::join('employee', 'assigned_branches.brwp_id', '=', 'employee.brwp_id')
        ->join('employment_status', 'employee.es_id', '=', 'employment_status.es_id')
             ->where('employee.is_deleted', 0, )
        ->where('assigned_branches.ut_id', Auth::user()->ut_id)
        ->where('employment_status.is_current_employee', 1)->count(),
-        'todays_birthdays' =>  AssignedBranchModel::join('employee', 'assigned_branches.branch_code', '=', 'employee.branch_code')
+        'todays_birthdays' =>  AssignedBranchModel::join('employee', 'assigned_branches.brwp_id', '=', 'employee.brwp_id')
        ->join('employment_status', 'employee.es_id', '=', 'employment_status.es_id')
 
         ->where('employee.is_deleted', 0, )
@@ -101,7 +101,7 @@ class SystemController extends Controller
                 ->where('employment_status.is_current_employee', 1)
                 ->whereRaw("DATE_FORMAT(employee.date_of_birth, '%m-%d') = ?", [$today])
                 ->get(),
-            'todays_work_anniv' =>  AssignedBranchModel::join('employee', 'assigned_branches.branch_code', '=', 'employee.branch_code')
+            'todays_work_anniv' =>  AssignedBranchModel::join('employee', 'assigned_branches.brwp_id', '=', 'employee.brwp_id')
        ->join('employment_status', 'employee.es_id', '=', 'employment_status.es_id')
 
             ->where('employee.is_deleted', 0, )
@@ -242,9 +242,9 @@ class SystemController extends Controller
         'types' => UserTypeModel::where('is_deleted', 0)
                     ->orderBy('user_type', 'asc')
                     ->get(),
-                    'branches' => BranchModel::where('is_deleted', 0)
+                    'branches' => BranchWorkplaceModel::where('is_deleted', 0)
     ->where('is_visible', 1)
-    ->orderBy('branch_name')
+    ->orderBy('name')
     ->get()
     ];
 
@@ -270,7 +270,7 @@ class SystemController extends Controller
         'privileges'         => 'nullable|array',
         'privileges.*'       => 'string|max:255',
         'assigned_branches'  => 'nullable|array',
-        'assigned_branches.*'=> 'string|exists:branches,branch_code',
+        'assigned_branches.*'=> 'integer|exists:branches_workplaces,id',
     ], [], [
         'user_type' => 'User Type',
     ]);
@@ -307,11 +307,11 @@ class SystemController extends Controller
 
     if ($request->assigned_branches) {
 
-        foreach ($request->assigned_branches as $branchCode) {
+        foreach ($request->assigned_branches as $brwpId) {
 
             AssignedBranchModel::create([
-                'ut_id'       => $type->ut_id,
-                'branch_code' => $branchCode
+                'ut_id'   => $type->ut_id,
+                'brwp_id' => $brwpId
             ]);
 
         }
@@ -342,7 +342,7 @@ public function update(Request $request, $id)
         'privileges'         => 'nullable|array',
         'privileges.*'       => 'string|max:255',
         'assigned_branches'  => 'nullable|array',
-        'assigned_branches.*'=> 'string|exists:branches,branch_code',
+        'assigned_branches.*'=> 'integer|exists:branches_workplaces,id',
     ], [], [
         'user_type' => 'User Type',
     ]);
@@ -382,11 +382,11 @@ public function update(Request $request, $id)
 
     if ($request->assigned_branches) {
 
-        foreach ($request->assigned_branches as $branchCode) {
+        foreach ($request->assigned_branches as $brwpId) {
 
             AssignedBranchModel::create([
-                'ut_id'       => $id,
-                'branch_code' => $branchCode
+                'ut_id'   => $id,
+                'brwp_id' => $brwpId
             ]);
 
         }

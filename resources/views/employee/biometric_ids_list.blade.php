@@ -58,12 +58,12 @@
                 <form method="GET" action="{{ route('biometric-ids.all') }}" class="row g-3 align-items-end">
 
                     <div class="col-lg-3">
-                        <label class="form-label text-muted small fw-bold text-uppercase">Branch</label>
+                        <label class="form-label text-muted small fw-bold text-uppercase">Branch/Workplace</label>
                         <select name="branch_code" id="filter_branch_code" class="form-control form-control-sm">
-                            <option value="">All Branches</option>
+                            <option value="">All Branches/Workplaces</option>
                             @foreach($branches as $branch)
-                                <option value="{{ $branch->branch_code }}" {{ request('branch_code') == $branch->branch_code ? 'selected' : '' }}>
-                                    {{ $branch->branch_code }} - {{ $branch->branch_name }}
+                                <option value="{{ $branch->id }}" {{ request('branch_code') == $branch->id ? 'selected' : '' }}>
+                                    {{ $branch->brwp_code }} - {{ $branch->name }}
                                 </option>
                             @endforeach
                         </select>
@@ -113,7 +113,7 @@
         <tr>
             <th>Employee No.</th>
             <th>Employee</th>
-            <th>Assigned Branch</th>
+            <th>Assigned Branch/Workplace</th>
             <th>Status</th>
             <th>Branch - Biometric ID</th>
             <th width="80">Actions</th>
@@ -140,7 +140,7 @@
             <td>
                 @forelse($emp->biometric_records as $record)
                 <div class="d-flex align-items-center gap-1 mb-1">
-                    <span class="badge bg-primary">{{ $record->branch_code }} {{ $record->biometric_branch_name }} - {{ $record->biometric_id }}</span>
+                    <span class="badge bg-primary">{{ $record->biometric_branch_code }} {{ $record->biometric_branch_name }} - {{ $record->biometric_id }}</span>
 
                     <button type="button"
                         class="border-0 bg-transparent text-info d-inline-flex align-items-center justify-content-center p-0 tbtn"
@@ -228,16 +228,16 @@
             </div>
 
             <div class="mb-2">
-                <label>Assigned Branch</label>
+                <label>Assigned Branch/Workplace</label>
                 <input type="text" id="addBiometricAssignedBranch" class="form-control form-control-sm" readonly>
             </div>
 
             <div class="mb-2">
-                <label>Branch</label>
-                <select name="branch_code" id="addBiometricBranch" class="form-control form-control-sm" required>
-                    <option value="">-- Select Branch --</option>
+                <label>Branch/Workplace</label>
+                <select name="brwp_id" id="addBiometricBranch" class="form-control form-control-sm" required>
+                    <option value="">-- Select Branch/Workplace --</option>
                     @foreach($branches as $branch)
-                        <option value="{{ $branch->branch_code }}">{{ $branch->branch_code }} - {{ $branch->branch_name }}</option>
+                        <option value="{{ $branch->id }}">{{ $branch->brwp_code }} - {{ $branch->name }}</option>
                     @endforeach
                 </select>
             </div>
@@ -287,12 +287,12 @@
             </div>
 
             <div class="mb-2">
-                <label>Branch</label>
-                <select name="branch_code" id="editBiometricBranch{{ $record->id }}" class="form-control form-control-sm">
+                <label>Branch/Workplace</label>
+                <select name="brwp_id" id="editBiometricBranch{{ $record->id }}" class="form-control form-control-sm">
                     @foreach($branches as $branch)
-                        <option value="{{ $branch->branch_code }}"
-                            {{ $record->branch_code == $branch->branch_code ? 'selected' : '' }}>
-                            {{ $branch->branch_code }} - {{ $branch->branch_name }}
+                        <option value="{{ $branch->id }}"
+                            {{ $record->brwp_id == $branch->id ? 'selected' : '' }}>
+                            {{ $branch->brwp_code }} - {{ $branch->name }}
                         </option>
                     @endforeach
                 </select>

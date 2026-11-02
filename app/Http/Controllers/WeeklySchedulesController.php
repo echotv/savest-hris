@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\WeeklySchedule;
 use App\Models\EmployeeWeeklySchedule;
 use App\Models\EmployeeModel;
-use App\Models\BranchModel;
+use App\Models\BranchWorkplaceModel;
 use App\Models\SystemLogsModel;
 use Carbon\Carbon;
 
@@ -49,8 +49,9 @@ class WeeklySchedulesController extends Controller
     });
 
     $employee = EmployeeModel::where('employee_id', $employee_id)
-        ->join('branches', 'employee.branch_code', '=', 'branches.branch_code')
+        ->join('branches_workplaces', 'employee.brwp_id', '=', 'branches_workplaces.id')
         ->join('positions', 'employee.position_id', '=', 'positions.position_id')
+        ->select('employee.*', 'branches_workplaces.brwp_code as branch_code', 'branches_workplaces.name as branch_name', 'positions.position_name')
         ->first();
 
     abort_if(!$employee, 404, 'Employee not found.');
@@ -107,8 +108,9 @@ public function load_update($ews_id)
     $menu = 'Employee';
 
     $employee = EmployeeModel::where('employee.employee_id', $ews->employee_id)
-    ->leftJoin('branches', 'employee.branch_code', '=', 'branches.branch_code')
+    ->leftJoin('branches_workplaces', 'employee.brwp_id', '=', 'branches_workplaces.id')
     ->leftJoin('positions', 'employee.position_id', '=', 'positions.position_id')
+    ->select('employee.*', 'branches_workplaces.brwp_code as branch_code', 'branches_workplaces.name as branch_name', 'positions.position_name')
     ->first();
 
     abort_if(!$employee, 404, 'Employee not found.');
@@ -128,8 +130,9 @@ return view('employee.update_weekly_schedules', compact(
 public function load_schedules($employee_id)
 {
     $employee = EmployeeModel::where('employee.employee_id', $employee_id)
-        ->join('branches', 'employee.branch_code', '=', 'branches.branch_code')
+        ->join('branches_workplaces', 'employee.brwp_id', '=', 'branches_workplaces.id')
         ->join('positions', 'employee.position_id', '=', 'positions.position_id')
+        ->select('employee.*', 'branches_workplaces.brwp_code as branch_code', 'branches_workplaces.name as branch_name', 'positions.position_name')
         ->first();
 
     abort_if(!$employee, 404, 'Employee not found.');
@@ -164,7 +167,7 @@ $current_record_id = optional(
 }
 public function load_wsl(Request $request)
 {
-    $branches = BranchModel::where('is_deleted', 0)->get();
+    $branches = BranchWorkplaceModel::where('is_deleted', 0)->get();
 
     // All current (active, not deleted) employees, whether or not they have a schedule yet
     $employees = EmployeeModel::join('employment_status', 'employee.es_id', '=', 'employment_status.es_id')
@@ -172,15 +175,15 @@ public function load_wsl(Request $request)
         ->where('employment_status.is_current_employee', 1)
 
         // RBAC FILTER
-        ->whereIn('employee.branch_code', function ($q) {
-            $q->select('branch_code')
+        ->whereIn('employee.brwp_id', function ($q) {
+            $q->select('brwp_id')
                 ->from('assigned_branches')
                 ->where('ut_id', Auth::user()->ut_id);
         });
 
     // UI FILTER
     if ($request->branch_code && $request->branch_code != 'All') {
-        $employees->where('employee.branch_code', $request->branch_code);
+        $employees->where('employee.brwp_id', $request->branch_code);
     }
 
     $employees = $employees
@@ -191,7 +194,7 @@ public function load_wsl(Request $request)
             'employee.middlename',
             'employee.suffix',
             'employee.employee_number',
-            'employee.branch_code'
+            'employee.brwp_id'
         )
         ->get();
 
@@ -235,7 +238,7 @@ public function load_wsl(Request $request)
 public function load_bulk_update()
 {
     $employees = EmployeeModel::join('employment_status', 'employee.es_id', '=', 'employment_status.es_id')
-    ->join('branches', 'employee.branch_code', '=', 'branches.branch_code')
+    ->join('branches_workplaces', 'employee.brwp_id', '=', 'branches_workplaces.id')
     ->where('employment_status.is_current_employee', 1)
     ->where('employee.is_deleted', 0)
     ->select(
@@ -245,9 +248,9 @@ public function load_bulk_update()
         'employee.middlename',
         'employee.suffix',
         'employee.employee_number',
-        'employee.branch_code',
+        'branches_workplaces.brwp_code as branch_code',
         'employment_status.empl_status',
-        'branches.branch_name'
+        'branches_workplaces.name as branch_name'
     )
     ->get();
 
@@ -512,10 +515,10 @@ public function bulk_update(Request $request)
                     'employment_status.es_id'
                 )
                 ->join(
-                    'branches',
-                    'employee.branch_code',
+                    'branches_workplaces',
+                    'employee.brwp_id',
                     '=',
-                    'branches.branch_code'
+                    'branches_workplaces.id'
                 )
                 ->where('employment_status.is_current_employee', 1)
                 ->where('employee.is_deleted', 0)
@@ -526,9 +529,9 @@ public function bulk_update(Request $request)
                     'employee.middlename',
                     'employee.suffix',
                     'employee.employee_number',
-                    'employee.branch_code',
+                    'branches_workplaces.brwp_code as branch_code',
                     'employment_status.empl_status',
-                    'branches.branch_name',
+                    'branches_workplaces.name as branch_name',
 
                     DB::raw("
                         CONCAT(

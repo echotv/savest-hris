@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use App\Models\PerformanceEvaluation;
 use App\Models\PerformanceEvaluationFile;
 use App\Models\EmployeeModel;
+use App\Models\BranchWorkplaceModel;
 use App\Models\SystemLogsModel;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -28,7 +29,7 @@ class PerformanceEvaluationController extends Controller
 
         if (empty($assigned)) return $query->whereRaw('1=0');
 
-        return $query->whereHas('employee', fn($sq) => $sq->whereIn('branch_code', $assigned));
+        return $query->whereHas('employee', fn($sq) => $sq->whereIn('brwp_id', $assigned));
     }
 
     private function scopedEmployees()
@@ -36,7 +37,7 @@ class PerformanceEvaluationController extends Controller
         $assigned = userBranches();
 
         return EmployeeModel::where('is_deleted', 0)
-            ->when($assigned !== null, fn($q) => empty($assigned) ? $q->whereRaw('1=0') : $q->whereIn('branch_code', $assigned))
+            ->when($assigned !== null, fn($q) => empty($assigned) ? $q->whereRaw('1=0') : $q->whereIn('brwp_id', $assigned))
             ->orderBy('lastname')->orderBy('firstname')
             ->get();
     }
@@ -84,7 +85,7 @@ class PerformanceEvaluationController extends Controller
         if ($assigned === null) return null;
 
         $outside = empty($assigned)
-            || !EmployeeModel::where('employee_id', $employeeId)->whereIn('branch_code', $assigned)->exists();
+            || !EmployeeModel::where('employee_id', $employeeId)->whereIn('brwp_id', $assigned)->exists();
 
         return $outside
             ? response()->json(['message' => 'You can only record evaluations for employees in your assigned branches.'], 403)
@@ -168,7 +169,7 @@ class PerformanceEvaluationController extends Controller
               ->orderByDesc('performance_evaluations.evaluation_date')
               ->orderByDesc('performance_evaluations.id');
 
-        $branchMap = \App\Models\BranchModel::pluck('branch_name', 'branch_code');
+        $branchMap = BranchWorkplaceModel::pluck('name', 'id');
         $canEdit   = userCan('UPDATE PERFORMANCE EVALUATIONS');
         $canDelete = userCan('DELETE PERFORMANCE EVALUATIONS');
 
@@ -179,7 +180,7 @@ class PerformanceEvaluationController extends Controller
                 if (!$emp) return null;
                 return trim($emp->firstname . ' ' . $emp->lastname)
                     . '|' . $emp->employee_number
-                    . '|' . $branchMap->get($emp->branch_code, $emp->branch_code);
+                    . '|' . $branchMap->get($emp->brwp_id, $emp->brwp_id);
             })
             ->addColumn('score_fmt', fn($r) => $r->overall_score === null ? '—' : number_format((float) $r->overall_score, 2))
             ->addColumn('files_html', function ($r) {

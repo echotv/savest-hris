@@ -455,14 +455,10 @@ body.dark .section-nav-btn.active { background: #1b55e2; color: #fff; border-col
                         @endunless
                     </div>
                     <div class="col-md-3 col-12 mb-2">
-                        <label class="form-label form-label-sm">Branch <span class="text-danger">*</span></label>
-                        <select id="branch_code" name="branch_code" autocomplete="off">
-                            @foreach ($branches as $branch)
-                                <option value="{{ $branch->branch_code }}" @selected($employee->branch_code == $branch->branch_code)>
-                                    {{ $branch->branch_code }} {{ $branch->branch_name }}
-                                </option>
-                            @endforeach
-                        </select>
+                        <label class="form-label form-label-sm">Branch/Workplace</label>
+                        <input type="text" class="form-control form-control-sm text-primary"
+                            value="{{ $employee->branch_code }} {{ $employee->branch_name }}" readonly>
+                        <small class="text-muted">Not editable here — use Position Movement to log a branch/workplace change with an effective date.</small>
                     </div>
 
                 </div>
@@ -870,11 +866,6 @@ document.getElementById("add-cref-Btn").addEventListener("click", function() {
 
 /* ── Spouse fields ────────────────────────────────── */
 $(document).ready(function () {
-    new TomSelect('#branch_code', {
-        create: false,
-        sortField: { field: 'text', direction: 'asc' },
-        placeholder: 'Select or type a branch'
-    });
 
     var spouseFields = `
         <div class="sub-section mb-2">

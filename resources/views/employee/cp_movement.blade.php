@@ -77,7 +77,7 @@
                 </div>
 
                 <div class="col-md-4">
-                    <label>Branch</label>
+                    <label>Branches/Workplaces</label>
                     <input class="form-control form-control-sm text-primary"
                         value="{{ $employee->branch_code ?? '' }} {{ $employee->branch_name ?? ''}}" readonly>
                 </div>
@@ -110,6 +110,7 @@
                         <thead>
                             <tr>
                                 <th>Position</th>
+                                <th>Branches/Workplaces</th>
                                 <th>Effective Date</th>
                                 <th>End Date</th>
                                 <th width="140">Actions</th>
@@ -126,6 +127,10 @@
                                     <span class="badge bg-primary">
                                         {{ $record->position_name ?? '-' }}
                                     </span>
+                                </td>
+
+                                <td>
+                                    {{ $record->branch_code ?? '' }} {{ $record->branch_name ?? '' }}
                                 </td>
 
                                 <td>
@@ -173,7 +178,7 @@
 
                             @empty
                             <tr>
-                                <td colspan="4" class="text-center text-muted">
+                                <td colspan="5" class="text-center text-muted">
                                     No position movement records found
                                 </td>
                             </tr>
@@ -219,6 +224,18 @@
         </div>
 
         <div class="col-md-6">
+            <label>Branch/Workplace</label>
+            <select name="brwp_id" class="form-select branch-select" required>
+                <option value="">-- Select --</option>
+                @foreach($branches as $branch)
+                    <option value="{{ $branch->id }}">
+                        {{ $branch->brwp_code }} - {{ $branch->name }}
+                    </option>
+                @endforeach
+            </select>
+        </div>
+
+        <div class="col-md-6 mt-2">
             <label>Effective Date</label>
             <input type="date" name="effective_date" class="form-control" required>
         </div>
@@ -316,6 +333,18 @@
                     </div>
 
                     <div class="mb-2">
+                        <label>Branch/Workplace</label>
+                        <select name="brwp_id" class="form-select branch-select" required>
+                            @foreach($branches as $branch)
+                                <option value="{{ $branch->id }}"
+                                    {{ $record->brwp_id == $branch->id ? 'selected' : '' }}>
+                                    {{ $branch->brwp_code }} - {{ $branch->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="mb-2">
                         <label>Effective Date</label>
                         <input type="date"
                             name="effective_date"
@@ -358,6 +387,16 @@ document.querySelectorAll('select.position-select').forEach(function (el) {
         create: false,
         allowEmptyOption: false,
         placeholder: 'Search and select a position…',
+        sortField: { field: 'text', direction: 'asc' }
+    });
+});
+
+// Branch/Workplace dropdowns (Add + every Edit modal) -> searchable TomSelect
+document.querySelectorAll('select.branch-select').forEach(function (el) {
+    new TomSelect(el, {
+        create: false,
+        allowEmptyOption: false,
+        placeholder: 'Search and select a branch/workplace…',
         sortField: { field: 'text', direction: 'asc' }
     });
 });

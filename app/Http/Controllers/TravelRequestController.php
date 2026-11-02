@@ -10,7 +10,7 @@ use App\Models\TravelRequest;
 use App\Models\TravelRequestEmployee;
 use App\Models\TravelRequestDay;
 use App\Models\EmployeeModel;
-use App\Models\BranchModel;
+use App\Models\BranchWorkplaceModel;
 use App\Models\SystemLogsModel;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -21,12 +21,12 @@ class TravelRequestController extends Controller
         if (!userCan('VIEW ON-TRAVEL & SEMINAR REQUESTS')) abort(403);
 
         $assignedBranches = userBranches();
-        $branches = BranchModel::where('is_deleted', 0)
-            ->when($assignedBranches !== null, fn($q) => empty($assignedBranches) ? $q->whereRaw('1=0') : $q->whereIn('branch_code', $assignedBranches))
-            ->orderBy('branch_name')->get();
+        $branches = BranchWorkplaceModel::where('is_deleted', 0)
+            ->when($assignedBranches !== null, fn($q) => empty($assignedBranches) ? $q->whereRaw('1=0') : $q->whereIn('id', $assignedBranches))
+            ->orderBy('name')->get();
 
         $employees = EmployeeModel::where('is_deleted', 0)
-            ->when($assignedBranches !== null, fn($q) => empty($assignedBranches) ? $q->whereRaw('1=0') : $q->whereIn('branch_code', $assignedBranches))
+            ->when($assignedBranches !== null, fn($q) => empty($assignedBranches) ? $q->whereRaw('1=0') : $q->whereIn('brwp_id', $assignedBranches))
             ->orderBy('lastname')->get();
 
         $purposes = TravelRequest::where('is_deleted', 0)
@@ -34,7 +34,7 @@ class TravelRequestController extends Controller
                 !empty($assignedBranches)
                     ? $q->whereHas('employeeLinks', fn($sq) =>
                         $sq->whereHas('employee', fn($esq) =>
-                            $esq->whereIn('branch_code', $assignedBranches)
+                            $esq->whereIn('brwp_id', $assignedBranches)
                         )
                     )
                     : $q->whereRaw('1=0')
@@ -64,7 +64,7 @@ class TravelRequestController extends Controller
                 !empty($assignedBranches)
                     ? $q->whereHas('employeeLinks', fn($sq) =>
                         $sq->whereHas('employee', fn($esq) =>
-                            $esq->whereIn('branch_code', $assignedBranches)
+                            $esq->whereIn('brwp_id', $assignedBranches)
                         )
                     )
                     : $q->whereRaw('1=0')
@@ -73,7 +73,7 @@ class TravelRequestController extends Controller
         if ($request->filled('branch_filter')) {
             $query->whereHas('employeeLinks', fn($sq) =>
                 $sq->whereHas('employee', fn($esq) =>
-                    $esq->where('branch_code', $request->branch_filter)
+                    $esq->where('brwp_id', $request->branch_filter)
                 )
             );
         }
@@ -99,7 +99,7 @@ class TravelRequestController extends Controller
             'employee_travel_requests.notes',
         ])->with(['employeeLinks.employee', 'days']);
 
-        $branchMap = BranchModel::pluck('branch_name', 'branch_code');
+        $branchMap = BranchWorkplaceModel::pluck('name', 'id');
         $canEdit   = userCan('UPDATE ON-TRAVEL & SEMINAR REQUESTS');
         $canDelete = userCan('DELETE ON-TRAVEL & SEMINAR REQUESTS');
 
@@ -110,7 +110,7 @@ class TravelRequestController extends Controller
                     if (!$emp) return null;
                     return trim($emp->firstname . ' ' . $emp->lastname)
                         . '|' . $emp->employee_number
-                        . '|' . $branchMap->get($emp->branch_code, $emp->branch_code)
+                        . '|' . $branchMap->get($emp->brwp_id, $emp->brwp_id)
                         . '|' . $emp->employee_id;
                 })->filter()->join(';;');
             })

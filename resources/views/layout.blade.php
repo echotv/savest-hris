@@ -382,6 +382,187 @@
             padding:36px 16px; color:#94a3b8; gap:10px;
         }
         .notif-empty p { margin:0; font-size:13px; }
+
+        /* ══════════════════════════════════════════════════════════════
+           ENTERPRISE UI POLISH — presentation only, no markup/logic changes.
+           Refines the existing theme's cards, buttons, forms, tables,
+           badges, modals, sidebar and header using the theme's own color
+           tokens (var(--bs-*), #4361ee accent, #191e3a brand navy) so it
+           stays visually consistent in both light and dark mode. Every
+           rule below targets classes the theme/Bootstrap already renders —
+           nothing here changes an id, name, data-attribute or event
+           handler, so existing JS/forms/filters keep working unchanged.
+           ══════════════════════════════════════════════════════════════ */
+
+        /* ── Typography ──────────────────────────────────────────────── */
+        h1, h2, h3, h4, h5, h6 { letter-spacing: -0.01em; }
+        .card-title, .modal-title { font-weight: 700; }
+        .text-muted { opacity: 0.85; }
+
+        /* ── Cards ────────────────────────────────────────────────────
+           Slightly softer shadow + consistent radius on every card,
+           with a gentle hover lift only on cards meant to be scanned
+           (stat tiles / chart widgets) — static form cards stay put. */
+        .card {
+            border-radius: 12px;
+            box-shadow: 0 1px 2px rgba(31, 41, 55, 0.04), 0 8px 20px -6px rgba(31, 41, 55, 0.08);
+            transition: box-shadow 0.2s ease, transform 0.2s ease;
+        }
+        body.dark .card {
+            border-color: var(--bs-border-color, #1b2e4b);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2), 0 8px 20px -6px rgba(0, 0, 0, 0.35);
+        }
+        .modern-stat-card, .modern-widget, .chart-card {
+            border-radius: 14px;
+        }
+        .modern-stat-card:hover, .modern-widget:hover {
+            box-shadow: 0 4px 10px rgba(31, 41, 55, 0.06), 0 16px 32px -8px rgba(31, 41, 55, 0.14);
+            transform: translateY(-2px);
+        }
+        body.dark .modern-stat-card:hover, body.dark .modern-widget:hover {
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3), 0 16px 32px -8px rgba(0, 0, 0, 0.5);
+        }
+
+        /* ── Buttons ──────────────────────────────────────────────────
+           Keep the theme's existing colors (navy primary, etc.) — only
+           refine shape, weight and the hover/active feel. */
+        .btn {
+            border-radius: 8px;
+            font-weight: 600;
+            letter-spacing: 0.01em;
+        }
+        .btn-sm { border-radius: 7px; }
+        .btn:active { transform: translateY(1px); }
+        .btn:focus-visible {
+            outline: 2px solid #4361ee;
+            outline-offset: 2px;
+        }
+
+        /* ── Forms ────────────────────────────────────────────────────
+           Consistent radius + a visible focus ring in the theme's own
+           accent color, applied to native fields and TomSelect alike. */
+        .form-control, .form-select,
+        .ts-wrapper .ts-control {
+            border-radius: 8px !important;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        }
+        .form-control:focus, .form-select:focus,
+        .ts-wrapper.focus .ts-control {
+            border-color: #4361ee !important;
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15) !important;
+        }
+        .form-label { font-weight: 600; font-size: 0.8rem; }
+
+        /* ── Tables ───────────────────────────────────────────────────
+           Standardizes every data table's header + row feel system-wide
+           (uppercase tracked header, subtle tint, roomier cells, row
+           hover) without touching each page's column markup. */
+        .table thead th {
+            text-transform: uppercase;
+            font-size: 11.5px;
+            letter-spacing: 0.04em;
+            font-weight: 700;
+            color: var(--bs-body-color, #566a7f);
+            background: rgba(67, 97, 238, 0.04);
+            border-bottom-width: 1px;
+            padding-top: 0.85rem;
+            padding-bottom: 0.85rem;
+        }
+        body.dark .table thead th {
+            background: rgba(67, 97, 238, 0.08);
+        }
+        .table tbody td {
+            padding-top: 0.75rem;
+            padding-bottom: 0.75rem;
+            vertical-align: middle;
+        }
+        .table-hover tbody tr:hover {
+            background-color: rgba(67, 97, 238, 0.04);
+        }
+        body.dark .table-hover tbody tr:hover {
+            background-color: rgba(67, 97, 238, 0.09);
+        }
+
+        /* ── Badges / status pills ────────────────────────────────────
+           Pill shape + a touch more breathing room, same colors/text. */
+        .badge {
+            border-radius: 999px;
+            padding: 5px 10px;
+            font-weight: 700;
+            letter-spacing: 0.01em;
+        }
+
+        /* ── Modals ───────────────────────────────────────────────────
+           Builds on the existing light/dark background fix above —
+           just rounds the corners and gives the chrome more room. */
+        .modal-content {
+            border-radius: 14px !important;
+            border: none;
+            box-shadow: 0 20px 60px -12px rgba(15, 23, 42, 0.35);
+        }
+        .modal-header {
+            padding: 1.1rem 1.4rem;
+            border-bottom: 1px solid var(--bs-border-color, #e0e6ed);
+        }
+        .modal-footer {
+            padding: 1rem 1.4rem;
+            border-top: 1px solid var(--bs-border-color, #e0e6ed);
+        }
+        .modal-body { padding: 1.4rem; }
+
+        /* ── Sidebar ──────────────────────────────────────────────────
+           Left accent bar + tinted background on the active item, a
+           smoother hover transition everywhere else — same links,
+           same hrefs, same dropdown JS. */
+        #sidebar ul.menu-categories li.menu > a.dropdown-toggle,
+        #sidebar ul.menu-categories li.menu > a {
+            border-radius: 8px;
+            transition: background-color 0.15s ease, color 0.15s ease;
+        }
+        #sidebar ul.menu-categories li.menu.active > a.dropdown-toggle,
+        #sidebar ul.menu-categories li.menu.active > a {
+            background: rgba(67, 97, 238, 0.12) !important;
+            box-shadow: inset 3px 0 0 0 #4361ee;
+        }
+        #sidebar ul.menu-categories li.menu:not(.active) > a:hover {
+            background: rgba(67, 97, 238, 0.06);
+        }
+
+        /* ── Header / navbar ──────────────────────────────────────────── */
+        .header-container {
+            box-shadow: 0 1px 0 var(--bs-border-color, #e0e6ed);
+        }
+        .dropdown-menu {
+            border-radius: 12px;
+            border: none;
+            box-shadow: 0 12px 32px -8px rgba(15, 23, 42, 0.22);
+            padding: 0.5rem;
+        }
+        .dropdown-item {
+            border-radius: 7px;
+            padding: 0.5rem 0.75rem;
+        }
+        .dropdown-item:hover {
+            background: rgba(67, 97, 238, 0.08);
+        }
+
+        /* ── Pagination (DataTables) ─────────────────────────────────── */
+        .dt--pagination .paginate_button {
+            border-radius: 7px !important;
+        }
+
+        /* ── Accessibility: consistent focus ring everywhere ──────────── */
+        a:focus-visible, button:focus-visible, .btn:focus-visible {
+            outline: 2px solid #4361ee;
+            outline-offset: 2px;
+        }
+
+        /* ── Responsive tightening on small screens ───────────────────── */
+        @media (max-width: 575.98px) {
+            .card-body { padding: 1rem; }
+            .modern-stat-card, .modern-widget, .chart-card { padding: 1rem !important; }
+            .modal-body, .modal-header, .modal-footer { padding: 1rem; }
+        }
     </style>
 </head>
 <body class="layout-boxed alt-menu">
@@ -653,7 +834,12 @@
                         <ul class="collapse submenu list-unstyled @if($menu == 'Company Setup') show @endif" id="company_setup" data-bs-parent="#accordionExample">
                             @if (userCan('VIEW BRANCHES'))
                             <li>
-                                <a href="{{ route('branches.index') }}"> Branches </a>
+                                <a href="{{ route('branches.index') }}"> Branches/Workplaces </a>
+                            </li>
+                            @endif
+                            @if (userCan('VIEW AREA GROUPING'))
+                            <li>
+                                <a href="{{ route('area-grouping.index') }}"> Area Grouping </a>
                             </li>
                             @endif
                             @if (userCan('VIEW COMPANY POSITIONS'))

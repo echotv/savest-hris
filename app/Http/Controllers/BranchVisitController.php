@@ -10,7 +10,7 @@ use App\Models\BranchVisitEmployee;
 use App\Models\BranchVisitBranch;
 use App\Models\BranchVisitDay;
 use App\Models\EmployeeModel;
-use App\Models\BranchModel;
+use App\Models\BranchWorkplaceModel;
 use App\Models\SystemLogsModel;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -22,16 +22,16 @@ class BranchVisitController extends Controller
 
         $assignedBranches = userBranches();
 
-        $branches = BranchModel::where('is_deleted', 0)
-            ->when($assignedBranches !== null, fn($q) => empty($assignedBranches) ? $q->whereRaw('1=0') : $q->whereIn('branch_code', $assignedBranches))
-            ->orderBy('branch_name')->get();
+        $branches = BranchWorkplaceModel::where('is_deleted', 0)
+            ->when($assignedBranches !== null, fn($q) => empty($assignedBranches) ? $q->whereRaw('1=0') : $q->whereIn('id', $assignedBranches))
+            ->orderBy('name')->get();
 
         $employees = EmployeeModel::where('is_deleted', 0)
-            ->when($assignedBranches !== null, fn($q) => empty($assignedBranches) ? $q->whereRaw('1=0') : $q->whereIn('branch_code', $assignedBranches))
+            ->when($assignedBranches !== null, fn($q) => empty($assignedBranches) ? $q->whereRaw('1=0') : $q->whereIn('brwp_id', $assignedBranches))
             ->orderBy('lastname')->get();
 
-        // All branches available to visit (all active branches, not filtered by user scope)
-        $allBranches = BranchModel::where('is_deleted', 0)->orderBy('branch_name')->get();
+        // All branches/workplaces available to visit (all active, not filtered by user scope)
+        $allBranches = BranchWorkplaceModel::where('is_deleted', 0)->orderBy('name')->get();
 
         return view('timekeeping.branch_visits', [
             'title'      => 'Branch Visits - SAVEST HRIS',
@@ -56,7 +56,7 @@ class BranchVisitController extends Controller
             } else {
                 $query->whereHas('employeeLinks', fn($sq) =>
                     $sq->whereHas('employee', fn($esq) =>
-                        $esq->whereIn('branch_code', $assignedBranches)
+                        $esq->whereIn('brwp_id', $assignedBranches)
                     )
                 );
             }
@@ -65,14 +65,14 @@ class BranchVisitController extends Controller
         if ($request->filled('branch_filter')) {
             $query->whereHas('employeeLinks', fn($sq) =>
                 $sq->whereHas('employee', fn($esq) =>
-                    $esq->where('branch_code', $request->branch_filter)
+                    $esq->where('brwp_id', $request->branch_filter)
                 )
             );
         }
 
         if ($request->filled('visited_branch_filter')) {
             $query->whereHas('branchLinks', fn($sq) =>
-                $sq->where('branch_code', $request->visited_branch_filter)
+                $sq->where('brwp_id', $request->visited_branch_filter)
             );
         }
 
@@ -86,7 +86,7 @@ class BranchVisitController extends Controller
         $query->select('employee_branch_visits.*')
               ->with(['employeeLinks.employee', 'branchLinks.branch', 'days']);
 
-        $branchMap = BranchModel::pluck('branch_name', 'branch_code');
+        $branchMap = BranchWorkplaceModel::pluck('name', 'id');
         $canEdit   = userCan('UPDATE BRANCH VISITS');
         $canDelete = userCan('DELETE BRANCH VISITS');
 
@@ -97,12 +97,12 @@ class BranchVisitController extends Controller
                     if (!$emp) return null;
                     return trim($emp->firstname . ' ' . $emp->lastname)
                         . '|' . $emp->employee_number
-                        . '|' . $branchMap->get($emp->branch_code, $emp->branch_code)
+                        . '|' . $branchMap->get($emp->brwp_id, $emp->brwp_id)
                         . '|' . $emp->employee_id;
                 })->filter()->join(';;');
             })
             ->addColumn('branches_info', function ($r) {
-                return $r->branchLinks->map(fn($bl) => $bl->branch?->branch_name ?? $bl->branch_code)->join(';;');
+                return $r->branchLinks->map(fn($bl) => $bl->branch?->name ?? $bl->brwp_id)->join(';;');
             })
             ->addColumn('action', function ($r) use ($canEdit, $canDelete) {
                 $daysJson = htmlspecialchars(
@@ -114,7 +114,7 @@ class BranchVisitController extends Controller
                     ENT_QUOTES
                 );
                 $empIdsJson     = htmlspecialchars($r->employeeLinks->pluck('employee_id')->values()->toJson(), ENT_QUOTES);
-                $branchCodesJson = htmlspecialchars($r->branchLinks->pluck('branch_code')->values()->toJson(), ENT_QUOTES);
+                $branchCodesJson = htmlspecialchars($r->branchLinks->pluck('brwp_id')->values()->toJson(), ENT_QUOTES);
 
                 $btns = '<div class="d-flex align-items-center gap-2 pe-2">';
                 if ($canEdit) {
@@ -151,8 +151,8 @@ class BranchVisitController extends Controller
         $request->validate([
             'employee_id'       => 'required|array|min:1',
             'employee_id.*'     => 'integer|exists:employee,employee_id',
-            'branch_codes'      => 'required|array|min:1',
-            'branch_codes.*'    => 'string|exists:branches,branch_code',
+            'brwp_ids'          => 'required|array|min:1',
+            'brwp_ids.*'        => 'integer|exists:branches_workplaces,id',
             'purpose'           => 'required|string|max:255',
             'start_date'        => 'required|date',
             'end_date'          => 'required|date|after_or_equal:start_date',
@@ -181,8 +181,8 @@ class BranchVisitController extends Controller
             $empNames[] = $emp ? trim($emp->firstname . ' ' . $emp->lastname) : "ID:{$empId}";
         }
 
-        foreach ($request->branch_codes as $bc) {
-            BranchVisitBranch::create(['branch_visit_id' => $record->id, 'branch_code' => $bc]);
+        foreach ($request->brwp_ids as $bid) {
+            BranchVisitBranch::create(['branch_visit_id' => $record->id, 'brwp_id' => $bid]);
         }
 
         foreach ($request->days as $day) {
@@ -195,7 +195,7 @@ class BranchVisitController extends Controller
         }
 
         $names   = implode(', ', $empNames);
-        $branches = implode(', ', $request->branch_codes);
+        $branches = BranchWorkplaceModel::whereIn('id', $request->brwp_ids)->pluck('name')->implode(', ');
         SystemLogsModel::addLog('Add Branch Visit', "Branch visit added for: {$names} to {$branches} ({$request->start_date} to {$request->end_date}).", $userId);
 
         return response()->json(['status' => 'success']);
@@ -208,8 +208,8 @@ class BranchVisitController extends Controller
         $request->validate([
             'employee_id'       => 'required|array|min:1',
             'employee_id.*'     => 'integer|exists:employee,employee_id',
-            'branch_codes'      => 'required|array|min:1',
-            'branch_codes.*'    => 'string|exists:branches,branch_code',
+            'brwp_ids'          => 'required|array|min:1',
+            'brwp_ids.*'        => 'integer|exists:branches_workplaces,id',
             'purpose'           => 'required|string|max:255',
             'start_date'        => 'required|date',
             'end_date'          => 'required|date|after_or_equal:start_date',
@@ -235,8 +235,8 @@ class BranchVisitController extends Controller
         }
 
         $record->branchLinks()->delete();
-        foreach ($request->branch_codes as $bc) {
-            BranchVisitBranch::create(['branch_visit_id' => $record->id, 'branch_code' => $bc]);
+        foreach ($request->brwp_ids as $bid) {
+            BranchVisitBranch::create(['branch_visit_id' => $record->id, 'brwp_id' => $bid]);
         }
 
         $record->days()->delete();

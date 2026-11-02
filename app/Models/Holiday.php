@@ -30,12 +30,12 @@ class Holiday extends Model
     public function branches(): BelongsToMany
     {
         return $this->belongsToMany(
-            BranchModel::class,
+            BranchWorkplaceModel::class,
             'holiday_branches',
             'holiday_id',
-            'branch_code',
+            'brwp_id',
             'holiday_id',
-            'branch_code'
+            'id'
         );
     }
 }

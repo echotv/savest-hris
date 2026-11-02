@@ -27,7 +27,7 @@ if (!function_exists('userBranches')) {
         if (!$user) return [];
 
         $branches = \App\Models\AssignedBranchModel::where('ut_id', $user->ut_id)
-            ->pluck('branch_code')
+            ->pluck('brwp_id')
             ->toArray();
 
         return empty($branches) ? null : $branches;

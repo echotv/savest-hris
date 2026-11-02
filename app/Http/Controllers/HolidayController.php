@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Holiday;
-use App\Models\BranchModel;
+use App\Models\BranchWorkplaceModel;
 use App\Models\SystemLogsModel;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -16,9 +16,9 @@ class HolidayController extends Controller
 
         $assignedBranches = userBranches();
 
-        $branches = BranchModel::where('is_deleted', 0)
-            ->when($assignedBranches !== null, fn($q) => empty($assignedBranches) ? $q->whereRaw('1=0') : $q->whereIn('branch_code', $assignedBranches))
-            ->orderBy('branch_name')
+        $branches = BranchWorkplaceModel::where('is_deleted', 0)
+            ->when($assignedBranches !== null, fn($q) => empty($assignedBranches) ? $q->whereRaw('1=0') : $q->whereIn('id', $assignedBranches))
+            ->orderBy('name')
             ->get();
 
         return view('timekeeping.holidays', [
@@ -43,7 +43,7 @@ class HolidayController extends Controller
             } else {
                 $query->where(function ($q) use ($assignedBranches) {
                     $q->whereDoesntHave('branches')
-                      ->orWhereHas('branches', fn($b) => $b->whereIn('branches.branch_code', $assignedBranches));
+                      ->orWhereHas('branches', fn($b) => $b->whereIn('branches_workplaces.id', $assignedBranches));
                 });
             }
         }
@@ -94,7 +94,7 @@ class HolidayController extends Controller
                 }
                 $html = '';
                 foreach ($r->branches->take(3) as $b) {
-                    $html .= '<span class="badge badge-light-info me-1" style="font-size:10px;">' . e($b->branch_name) . '</span>';
+                    $html .= '<span class="badge badge-light-info me-1" style="font-size:10px;">' . e($b->name) . '</span>';
                 }
                 if ($r->branches->count() > 3) {
                     $html .= '<span class="badge badge-light-secondary" style="font-size:10px;">+' . ($r->branches->count() - 3) . ' more</span>';
@@ -102,7 +102,7 @@ class HolidayController extends Controller
                 return $html ?: '<span class="badge badge-light-secondary">All Branches</span>';
             })
             ->addColumn('action', function ($r) use ($canEdit, $canDelete) {
-                $branchCodes = $r->branches->pluck('branch_code')->toArray();
+                $branchCodes = $r->branches->pluck('id')->toArray();
                 $btns = '<div class="d-flex align-items-center gap-2 pe-2">';
                 if ($canEdit) {
                     $btns .= '<button class="border-0 bg-transparent text-primary p-0 editBtn" style="width:24px;height:24px;"
@@ -148,7 +148,7 @@ class HolidayController extends Controller
             'description'  => 'nullable|string|max:5000',
             'is_recurring' => 'nullable|boolean',
             'branches'     => 'nullable|array',
-            'branches.*'   => 'string|exists:branches,branch_code',
+            'branches.*'   => 'integer|exists:branches_workplaces,id',
         ]);
 
         $holiday = Holiday::create([
@@ -185,7 +185,7 @@ class HolidayController extends Controller
             'description'  => 'nullable|string|max:5000',
             'is_recurring' => 'nullable|boolean',
             'branches'     => 'nullable|array',
-            'branches.*'   => 'string|exists:branches,branch_code',
+            'branches.*'   => 'integer|exists:branches_workplaces,id',
         ]);
 
         $holiday = Holiday::findOrFail($id);

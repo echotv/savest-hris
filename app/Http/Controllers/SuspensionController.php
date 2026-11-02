@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use App\Models\EmployeeSuspension;
 use App\Models\EmployeeModel;
-use App\Models\BranchModel;
+use App\Models\BranchWorkplaceModel;
 use App\Models\SystemLogsModel;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -19,12 +19,12 @@ class SuspensionController extends Controller
         if (!userCan('VIEW SUSPENDED EMPLOYEES')) abort(403);
 
         $assignedBranches = userBranches();
-        $branches = BranchModel::where('is_deleted', 0)
-            ->when($assignedBranches !== null, fn($q) => empty($assignedBranches) ? $q->whereRaw('1=0') : $q->whereIn('branch_code', $assignedBranches))
-            ->orderBy('branch_name')->get();
+        $branches = BranchWorkplaceModel::where('is_deleted', 0)
+            ->when($assignedBranches !== null, fn($q) => empty($assignedBranches) ? $q->whereRaw('1=0') : $q->whereIn('id', $assignedBranches))
+            ->orderBy('name')->get();
 
         $employees = EmployeeModel::where('is_deleted', 0)
-            ->when($assignedBranches !== null, fn($q) => empty($assignedBranches) ? $q->whereRaw('1=0') : $q->whereIn('branch_code', $assignedBranches))
+            ->when($assignedBranches !== null, fn($q) => empty($assignedBranches) ? $q->whereRaw('1=0') : $q->whereIn('brwp_id', $assignedBranches))
             ->orderBy('lastname')->get();
 
         return view('timekeeping.suspensions', [
@@ -43,8 +43,8 @@ class SuspensionController extends Controller
 
         $query = EmployeeSuspension::where('employee_suspensions.is_deleted', 0)
             ->join('employee', 'employee_suspensions.employee_id', '=', 'employee.employee_id')
-            ->leftJoin('branches', 'employee.branch_code', '=', 'branches.branch_code')
-            ->when($assignedBranches !== null, fn($q) => empty($assignedBranches) ? $q->whereRaw('1=0') : $q->whereIn('employee.branch_code', $assignedBranches))
+            ->leftJoin('branches_workplaces', 'employee.brwp_id', '=', 'branches_workplaces.id')
+            ->when($assignedBranches !== null, fn($q) => empty($assignedBranches) ? $q->whereRaw('1=0') : $q->whereIn('employee.brwp_id', $assignedBranches))
             ->select([
                 'employee_suspensions.id',
                 'employee_suspensions.employee_id',
@@ -54,19 +54,19 @@ class SuspensionController extends Controller
                 'employee_suspensions.reason',
                 DB::raw("CONCAT(employee.firstname, ' ', employee.lastname) AS employee_name"),
                 'employee.employee_number',
-                'branches.branch_name',
-                'employee.branch_code',
+                'branches_workplaces.name as branch_name',
+                'employee.brwp_id',
             ]);
 
         if ($request->filled('branch_filter')) {
-            $query->where('employee.branch_code', $request->branch_filter);
+            $query->where('employee.brwp_id', $request->branch_filter);
         }
 
         $canEdit   = userCan('UPDATE SUSPENDED EMPLOYEES');
         $canDelete = userCan('DELETE SUSPENDED EMPLOYEES');
 
         return DataTables::of($query)
-            ->addColumn('employee_info', fn($r) => $r->employee_name . '|' . $r->employee_number . '|' . ($r->branch_name ?? $r->branch_code))
+            ->addColumn('employee_info', fn($r) => $r->employee_name . '|' . $r->employee_number . '|' . ($r->branch_name ?? $r->brwp_id))
             ->addColumn('action', function ($r) use ($canEdit, $canDelete) {
                 $btns = '<div class="d-flex align-items-center gap-2 pe-2">';
                 if ($canEdit) {

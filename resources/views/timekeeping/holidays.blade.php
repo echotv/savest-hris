@@ -235,7 +235,7 @@
                     <div class="col-12">
                         <div class="branch-select-all-row">
                             <label class="form-label fw-medium text-secondary small mb-0">
-                                Applied to Branches
+                                Applied to Branches/Workplaces
                                 <span class="text-muted fw-normal">(leave empty = applies to all)</span>
                             </label>
                             <div class="d-flex align-items-center gap-2">
@@ -248,9 +248,9 @@
                                 <div class="branch-check-item">
                                     <input type="checkbox"
                                            class="branch-checkbox"
-                                           id="br_{{ $branch->branch_code }}"
-                                           value="{{ $branch->branch_code }}">
-                                    <label for="br_{{ $branch->branch_code }}">{{ $branch->branch_name }}</label>
+                                           id="br_{{ $branch->id }}"
+                                           value="{{ $branch->id }}">
+                                    <label for="br_{{ $branch->id }}">{{ $branch->name }}</label>
                                 </div>
                             @endforeach
                         </div>

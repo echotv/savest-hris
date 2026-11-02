@@ -104,14 +104,14 @@ body.dark #zero-config thead .td-sun { background: rgba(231,81,90,0.22) !importa
                 <form id="filterForm" method="GET" action="{{ route('ews.load_wsl') }}">
                     <div class="row g-2 align-items-end">
                         <div class="col-md-3 col-sm-5">
-                            <label class="filter-label">Branch</label>
+                            <label class="filter-label">Branch/Workplace</label>
                             <select id="branch_code" name="branch_code" autocomplete="off"
                                     onchange="document.getElementById('filterForm').submit();">
-                                <option value="All">All Branches</option>
+                                <option value="All">All Branches/Workplaces</option>
                                 @foreach ($branches as $branch)
-                                    <option value="{{ $branch->branch_code }}"
-                                        {{ request('branch_code') == $branch->branch_code ? 'selected' : '' }}>
-                                        {{ $branch->branch_code }} {{ $branch->branch_name }}
+                                    <option value="{{ $branch->id }}"
+                                        {{ request('branch_code') == $branch->id ? 'selected' : '' }}>
+                                        {{ $branch->brwp_code }} {{ $branch->name }}
                                     </option>
                                 @endforeach
                             </select>

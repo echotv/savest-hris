@@ -89,14 +89,14 @@
                     @csrf
                     <div class="row g-3 align-items-end">
                         <div class="col-md-3">
-                            <label class="form-label text-muted small fw-bold text-uppercase">Branch</label>
+                            <label class="form-label text-muted small fw-bold text-uppercase">Branch/Workplace</label>
                             <select id="branch_code" name="branch_code" autocomplete="off"
                                     onchange="document.getElementById('filterForm').submit();">
                                 <option value="All" @if ($data_filtered['branch_code'] == 'All') selected @endif>All</option>
                                 @foreach ($branches as $branch)
-                                    <option value="{{ $branch->branch_code }}"
-                                        @if ($data_filtered['branch_code'] == $branch->branch_code) selected @endif>
-                                        {{ $branch->branch_code }} {{ $branch->branch_name }}
+                                    <option value="{{ $branch->id }}"
+                                        @if ($data_filtered['branch_code'] == $branch->id) selected @endif>
+                                        {{ $branch->brwp_code }} {{ $branch->name }}
                                     </option>
                                 @endforeach
                             </select>

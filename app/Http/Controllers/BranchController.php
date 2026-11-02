@@ -4,86 +4,82 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\BranchModel;
+use App\Models\BranchWorkplaceModel;
 use App\Models\SystemLogsModel;
 
 class BranchController extends Controller
 {
     public function index(Request $request)
     {
-        $query = BranchModel::where('is_deleted', 0);
+        $query = BranchWorkplaceModel::where('is_deleted', 0);
 
-        if ($request->filled('area')) {
-            $query->where('area', $request->area);
+        if ($request->filled('is_branch')) {
+            $query->where('is_branch', $request->is_branch);
         }
 
-        $branches = $query->orderBy('branch_code')->get();
+        $branches = $query->orderBy('brwp_code')->get();
 
-        $areas = BranchModel::where('is_deleted', 0)
-            ->whereNotNull('area')
-            ->distinct()
-            ->orderBy('area')
-            ->pluck('area');
-
-        $title = "Branches - Savest HRIS";
+        $title = "Branches/Workplaces - Savest HRIS";
         $menu = "Company Setup";
-        return view('branches', compact(['branches', 'areas', 'title', 'menu']));
+        return view('branches', compact(['branches', 'title', 'menu']));
     }
 
     public function store(Request $request)
     {
         $request->validate([
-            'branch_code' => 'required|string|max:20|unique:branches,branch_code',
-            'branch_name' => 'required|string|max:255',
-            'area' => 'nullable|integer',
-            'address' => 'nullable|string',
+            'brwp_code' => 'required|string|max:20|unique:branches_workplaces,brwp_code',
+            'name'      => 'required|string|max:255|unique:branches_workplaces,name',
+            'location'  => 'nullable|string',
+            'is_branch' => 'nullable',
         ]);
 
-        BranchModel::create([
-            'branch_code' => $request->branch_code,
-            'branch_name' => $request->branch_name,
-            'area' => $request->area,
-            'address' => $request->address,
+        BranchWorkplaceModel::create([
+            'brwp_code'  => $request->brwp_code,
+            'name'       => $request->name,
+            'location'   => $request->location,
+            'is_branch'  => $request->has('is_branch') ? 1 : 0,
             'is_visible' => $request->has('is_visible') ? 1 : 0,
             'is_deleted' => 0,
         ]);
 
-        SystemLogsModel::addLog('Add New Branch', "Branch '{$request->branch_code}' ({$request->branch_name}) was created.", Auth::id());
+        SystemLogsModel::addLog('Add New Branch/Workplace', "'{$request->brwp_code}' ({$request->name}) was created.", Auth::id());
 
-        return redirect()->back()->with('success', 'Branch created successfully.');
+        return redirect()->back()->with('success', 'Branch/Workplace created successfully.');
     }
 
-    public function update(Request $request, $branch_code)
+    public function update(Request $request, $id)
     {
+        $branch = BranchWorkplaceModel::findOrFail($id);
+
         $request->validate([
-            'branch_name' => 'required|string|max:255',
-            'area' => 'nullable|integer',
-            'address' => 'nullable|string',
+            'brwp_code' => 'required|string|max:20|unique:branches_workplaces,brwp_code,' . $branch->id . ',id',
+            'name'      => 'required|string|max:255|unique:branches_workplaces,name,' . $branch->id . ',id',
+            'location'  => 'nullable|string',
+            'is_branch' => 'nullable',
         ]);
 
-        $branch = BranchModel::findOrFail($branch_code);
-
         $branch->update([
-            'branch_name' => $request->branch_name,
-            'area' => $request->area,
-            'address' => $request->address,
+            'brwp_code'  => $request->brwp_code,
+            'name'       => $request->name,
+            'location'   => $request->location,
+            'is_branch'  => $request->has('is_branch') ? 1 : 0,
             'is_visible' => $request->has('is_visible') ? 1 : 0,
         ]);
 
-        SystemLogsModel::addLog('Update Branch', "Branch '{$branch_code}' was updated.", Auth::id());
+        SystemLogsModel::addLog('Update Branch/Workplace', "'{$branch->brwp_code}' was updated.", Auth::id());
 
-        return redirect()->back()->with('success', 'Branch updated successfully.');
+        return redirect()->back()->with('success', 'Branch/Workplace updated successfully.');
     }
 
-    public function destroy($branch_code)
+    public function destroy($id)
     {
-        $branch = BranchModel::findOrFail($branch_code);
+        $branch = BranchWorkplaceModel::findOrFail($id);
 
         // Soft delete style (using is_deleted column)
         $branch->update(['is_deleted' => 1]);
 
-        SystemLogsModel::addLog('Delete Branch', "Branch '{$branch_code}' was deleted.", Auth::id());
+        SystemLogsModel::addLog('Delete Branch/Workplace', "'{$branch->brwp_code}' was deleted.", Auth::id());
 
-        return redirect()->back()->with('success', 'Branch deleted successfully.');
+        return redirect()->back()->with('success', 'Branch/Workplace deleted successfully.');
     }
 }

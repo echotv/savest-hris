@@ -8,10 +8,10 @@ class BranchVisitBranch extends Model
 {
     public $timestamps = false;
     protected $table   = 'employee_branch_visit_branches';
-    protected $fillable = ['branch_visit_id', 'branch_code'];
+    protected $fillable = ['branch_visit_id', 'brwp_id'];
 
     public function branch()
     {
-        return $this->belongsTo(BranchModel::class, 'branch_code', 'branch_code');
+        return $this->belongsTo(BranchWorkplaceModel::class, 'brwp_id', 'id');
     }
 }

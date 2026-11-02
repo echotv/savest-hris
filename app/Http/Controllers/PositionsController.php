@@ -51,11 +51,11 @@ class PositionsController extends Controller
         $employees = EmployeeModel::where('employee.is_deleted', 0)
             ->where('employee.position_id', $position_id)
             ->leftJoin('employment_status', 'employee.es_id', '=', 'employment_status.es_id')
-            ->leftJoin('branches', 'employee.branch_code', '=', 'branches.branch_code')
+            ->leftJoin('branches_workplaces', 'employee.brwp_id', '=', 'branches_workplaces.id')
             ->select(
                 'employee.employee_id', 'employee.employee_number',
                 'employee.lastname', 'employee.firstname', 'employee.middlename', 'employee.suffix',
-                'employee.branch_code', 'branches.branch_name', 'employment_status.empl_status'
+                'branches_workplaces.brwp_code as branch_code', 'branches_workplaces.name as branch_name', 'employment_status.empl_status'
             )
             ->orderBy('employee.lastname')
             ->orderBy('employee.firstname')

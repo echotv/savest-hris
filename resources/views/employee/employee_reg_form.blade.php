@@ -517,14 +517,6 @@ body.dark .section-nav-btn.active {
                     </div>
 
                     <div class="col-md-4 col-12 mb-2">
-                        <label class="form-label form-label-sm">Branch <span class="text-danger">*</span></label>
-                        <select id="branch_code" name="branch_code" autocomplete="off">
-                            @foreach ($branches as $branch)
-                                <option value="{{ $branch->branch_code }}" {{ old('branch_code') == $branch->branch_code ? 'selected' : '' }}>{{ $branch->branch_code }} {{ $branch->branch_name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="col-md-4 col-12 mb-2">
                         <label class="form-label form-label-sm">Position <span class="text-danger">*</span></label>
                         <select id="position_id" name="position_id" autocomplete="off">
                             @foreach ($positions_list as $position)
@@ -1031,11 +1023,6 @@ document.addEventListener('DOMContentLoaded', function () {
         create: false,
         sortField: { field: "text", direction: "asc" },
         placeholder: "Select or type a position"
-    });
-    new TomSelect('#branch_code', {
-        create: false,
-        sortField: { field: "text", direction: "asc" },
-        placeholder: "Select or type a branch"
     });
 });
 

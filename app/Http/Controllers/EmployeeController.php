@@ -11,7 +11,7 @@ use App\Models\EmploymentStatusModel;
 use App\Models\GraduateStudiesModel;
 use App\Models\WorkExperiencesModel;
 use App\Models\CollegesModel;
-use App\Models\BranchModel;
+use App\Models\BranchWorkplaceModel;
 use App\Models\CharacterReference;
 use App\Models\EmployeeModel;
 use App\Models\SystemLogsModel;
@@ -64,8 +64,6 @@ class EmployeeController extends Controller
         $data =[
             'title' => 'Employee Registration Form - SAVEST HRIS',
             'menu' => 'Employee',
-            'branches' => AssignedBranchModel::join('branches', 'assigned_branches.branch_code', '=', 'branches.branch_code')
-            ->where(['branches.is_deleted' => 0, 'branches.is_visible' => 1, 'assigned_branches.ut_id'=>Auth::user()->ut_id])->get(),
             'positions_list' => PositionsModel::where(['is_deleted' => 0, 'is_archived' => 0])->get(),
                         'employment_statuses' => EmploymentStatusModel::where(['is_deleted'=> 0, 'is_visible'=> 1])->orderBy('empl_status', 'ASC')->get()
         ];
@@ -86,7 +84,7 @@ class EmployeeController extends Controller
         'menu'  => 'Employee',
 
         // 🎉 Today's birthdays
-        'todays_birthday' =>AssignedBranchModel::join('employee', 'assigned_branches.branch_code', '=', 'employee.branch_code')
+        'todays_birthday' =>AssignedBranchModel::join('employee', 'assigned_branches.brwp_id', '=', 'employee.brwp_id')
        ->where('employee.is_deleted', 0, )
        ->where('assigned_branches.ut_id', Auth::user()->ut_id)
             ->where('employee.employment_status', '!=', 'Resigned')
@@ -94,7 +92,7 @@ class EmployeeController extends Controller
             ->get(),
 
         // ⬅️ Birthdays from the past 7 days
-        'previous_birthdays' =>AssignedBranchModel::join('employee', 'assigned_branches.branch_code', '=', 'employee.branch_code')
+        'previous_birthdays' =>AssignedBranchModel::join('employee', 'assigned_branches.brwp_id', '=', 'employee.brwp_id')
        ->where('employee.is_deleted', 0, )
        ->where('assigned_branches.ut_id', Auth::user()->ut_id)
             ->where('employee.employment_status', '!=', 'Resigned')
@@ -106,7 +104,7 @@ class EmployeeController extends Controller
             ->get(),
 
         // ➡️ Birthdays from tomorrow until the next 14 days
-        'upcoming_birthdays' => AssignedBranchModel::join('employee', 'assigned_branches.branch_code', '=', 'employee.branch_code')
+        'upcoming_birthdays' => AssignedBranchModel::join('employee', 'assigned_branches.brwp_id', '=', 'employee.brwp_id')
        ->where('employee.is_deleted', 0, )
        ->where('assigned_branches.ut_id', Auth::user()->ut_id)
             ->where('employee.employment_status', '!=', 'Resigned')
@@ -136,7 +134,7 @@ class EmployeeController extends Controller
         'menu'  => 'Employee',
 
         // 🎉 Today's anniversaries
-        'todays_work_anniv' => AssignedBranchModel::join('employee', 'assigned_branches.branch_code', '=', 'employee.branch_code')
+        'todays_work_anniv' => AssignedBranchModel::join('employee', 'assigned_branches.brwp_id', '=', 'employee.brwp_id')
        ->where('employee.is_deleted', 0, )
        ->where('assigned_branches.ut_id', Auth::user()->ut_id)
             ->where('employee.employment_status', '!=', 'Resigned')
@@ -144,7 +142,7 @@ class EmployeeController extends Controller
             ->get(),
 
         // ⬅️ Past 7 days anniversaries
-        'previous_work_anniv' => AssignedBranchModel::join('employee', 'assigned_branches.branch_code', '=', 'employee.branch_code')
+        'previous_work_anniv' => AssignedBranchModel::join('employee', 'assigned_branches.brwp_id', '=', 'employee.brwp_id')
        ->where('employee.is_deleted', 0, )
        ->where('assigned_branches.ut_id', Auth::user()->ut_id)
             ->where('employee.employment_status', '!=', 'Resigned')
@@ -156,7 +154,7 @@ class EmployeeController extends Controller
             ->get(),
 
         // ➡️ Upcoming anniversaries (starting tomorrow until next 14 days)
-        'upcoming_work_anniv' => AssignedBranchModel::join('employee', 'assigned_branches.branch_code', '=', 'employee.branch_code')
+        'upcoming_work_anniv' => AssignedBranchModel::join('employee', 'assigned_branches.brwp_id', '=', 'employee.brwp_id')
        ->where('employee.is_deleted', 0, )
        ->where('assigned_branches.ut_id', Auth::user()->ut_id)
             ->where('employee.employment_status', '!=', 'Resigned')
@@ -177,8 +175,9 @@ class EmployeeController extends Controller
     {
         $employee = EmployeeModel::where('employee.employee_id', $employee_id)
             ->join('employment_status', 'employee.es_id', '=', 'employment_status.es_id')
-            ->join('branches', 'employee.branch_code', '=', 'branches.branch_code')
+            ->join('branches_workplaces', 'employee.brwp_id', '=', 'branches_workplaces.id')
             ->join('positions', 'employee.position_id', '=', 'positions.position_id', 'left')
+            ->select('employee.*', 'employment_status.empl_status', 'branches_workplaces.brwp_code as branch_code', 'branches_workplaces.name as branch_name', 'positions.position_name')
             ->first();
 
         abort_if(!$employee, 404, 'Employee not found.');
@@ -199,7 +198,11 @@ class EmployeeController extends Controller
 
     public function load_employee_edit($employee_id)
     {
-        $employee = EmployeeModel::where('employee.employee_id', $employee_id)->join('positions', 'employee.position_id', '=', 'positions.position_id', 'left')->select('employee.*', 'positions.*')->first();
+        $employee = EmployeeModel::where('employee.employee_id', $employee_id)
+            ->join('positions', 'employee.position_id', '=', 'positions.position_id', 'left')
+            ->join('branches_workplaces', 'employee.brwp_id', '=', 'branches_workplaces.id', 'left')
+            ->select('employee.*', 'positions.*', 'branches_workplaces.brwp_code as branch_code', 'branches_workplaces.name as branch_name')
+            ->first();
 
         abort_if(!$employee, 404, 'Employee not found.');
 
@@ -208,8 +211,6 @@ class EmployeeController extends Controller
             'menu' => 'Employee',
             'employee' => $employee,
             'is_current_employee' => EmployeeModel::isCurrentEmployeeStatus($employee->es_id),
-            'branches' => AssignedBranchModel::join('branches', 'assigned_branches.branch_code', '=', 'branches.branch_code')
-            ->where(['branches.is_deleted' => 0, 'branches.is_visible' => 1, 'assigned_branches.ut_id'=>Auth::user()->ut_id])->get(),
 
             'colleges' => CollegesModel::where(['employee_id'=> $employee_id,'is_deleted' => 0])->get(),
             'grad_studies' => GraduateStudiesModel::where(['employee_id'=> $employee_id,'is_deleted' => 0])->get(),
@@ -224,9 +225,9 @@ class EmployeeController extends Controller
 
     public function load_employee_list(Request $request)
 {
-    $query = AssignedBranchModel::join('employee', 'assigned_branches.branch_code', '=', 'employee.branch_code')
+    $query = AssignedBranchModel::join('employee', 'assigned_branches.brwp_id', '=', 'employee.brwp_id')
         ->join('employment_status', 'employee.es_id', '=', 'employment_status.es_id')
-        ->join('branches', 'employee.branch_code', '=', 'branches.branch_code')
+        ->join('branches_workplaces', 'employee.brwp_id', '=', 'branches_workplaces.id')
         ->join('positions', 'employee.position_id', '=', 'positions.position_id')
         ->where([
             'employee.is_deleted' => 0,
@@ -236,7 +237,7 @@ class EmployeeController extends Controller
 
     // FILTERS (cleaner than array $where)
     if (!empty($request->branch_code) && $request->branch_code != 'All') {
-        $query->where('employee.branch_code', $request->branch_code);
+        $query->where('employee.brwp_id', $request->branch_code);
     }
 
     if (!empty($request->position_id) && $request->position_id != 'All') {
@@ -273,7 +274,7 @@ class EmployeeController extends Controller
     // every joined column (employee_id included).
     $query->select(
         'employee.*',
-        'branches.branch_name',
+        'branches_workplaces.name as branch_name',
         'positions.position_name',
         'employment_status.empl_status'
     );
@@ -302,14 +303,14 @@ class EmployeeController extends Controller
         ])->orderBy('empl_status', 'ASC')->get(),
 
         'branches' => AssignedBranchModel::join(
-                'branches',
-                'assigned_branches.branch_code',
+                'branches_workplaces',
+                'assigned_branches.brwp_id',
                 '=',
-                'branches.branch_code'
+                'branches_workplaces.id'
             )
             ->where([
-                'branches.is_deleted' => 0,
-                'branches.is_visible' => 1,
+                'branches_workplaces.is_deleted' => 0,
+                'branches_workplaces.is_visible' => 1,
                 'assigned_branches.ut_id' => Auth::user()->ut_id
             ])
             ->get(),
@@ -355,7 +356,6 @@ class EmployeeController extends Controller
         'employee_number' => 'nullable|string|max:50|unique:employee,employee_number',
         'date_employed'   => 'required|date',
         'es_id'           => 'required|exists:employment_status,es_id',
-        'branch_code'     => 'required|string|max:20|exists:branches,branch_code',
         'position_id'     => 'required|exists:positions,position_id',
         'pagibig'         => 'nullable|string|max:50',
         'philhealth'      => 'nullable|string|max:50',
@@ -439,7 +439,6 @@ class EmployeeController extends Controller
         'employee_number' => 'Employee ID',
         'date_employed'   => 'Date Employed',
         'es_id'           => 'Employment Status',
-        'branch_code'     => 'Branch',
         'position_id'     => 'Position',
         'pagibig'         => 'PAGIBIG No.',
         'philhealth'      => 'PhilHealth No.',
@@ -555,6 +554,7 @@ class EmployeeController extends Controller
             EmployeePositionMovement::create([
                 'employee_id'    => $employee->employee_id,
                 'position_id'    => $employee->position_id,
+                'brwp_id'        => $employee->brwp_id,
                 'effective_date' => $employee->date_employed,
                 'end_date'       => null,
                 'remarks'        => 'none',
@@ -711,7 +711,6 @@ public function update_employee_number(Request $request){
             // Employment
             'date_employed'  => 'required|date',
             'account_status' => 'required|integer|in:0,1',
-            'branch_code'    => 'required|string|max:20|exists:branches,branch_code',
 
             // Family
             'father_name' => 'nullable|string|max:150',
@@ -799,7 +798,6 @@ public function update_employee_number(Request $request){
             'street'         => 'Street / House No.',
             'date_employed'  => 'Date Employed',
             'account_status' => 'Account Status',
-            'branch_code'    => 'Branch',
             'father_name'    => "Father's Name",
             'mother_name'    => "Mother's Name",
             'childrens'      => 'Children',
@@ -1160,14 +1158,15 @@ foreach($work_experiences as $we){
     {
         if (!userCan('DELETE EMPLOYEE')) abort(403);
 
-        $query = AssignedBranchModel::join('employee', 'assigned_branches.branch_code', '=', 'employee.branch_code')
+        $query = AssignedBranchModel::join('employee', 'assigned_branches.brwp_id', '=', 'employee.brwp_id')
             ->join('employment_status', 'employee.es_id', '=', 'employment_status.es_id')
-            ->join('branches', 'employee.branch_code', '=', 'branches.branch_code')
+            ->join('branches_workplaces', 'employee.brwp_id', '=', 'branches_workplaces.id')
             ->join('positions', 'employee.position_id', '=', 'positions.position_id')
             ->where([
                 'employee.is_deleted' => 1,
                 'assigned_branches.ut_id' => Auth::user()->ut_id
-            ]);
+            ])
+            ->select('employee.*', 'employment_status.empl_status', 'branches_workplaces.brwp_code as branch_code', 'branches_workplaces.name as branch_name', 'positions.position_name');
 
         return view('employee.deleted_employees', [
             'title'     => 'Deleted Employees - SAVEST HRIS',

@@ -14,6 +14,7 @@ class EmployeePositionMovement extends Model
     protected $fillable = [
         'employee_id',
         'position_id',
+        'brwp_id',
         'effective_date',
         'end_date',
         'remarks',
@@ -39,5 +40,10 @@ class EmployeePositionMovement extends Model
     public function Positions()
     {
         return $this->belongsTo(PositionsModel::class, 'position_id', 'position_id');
+    }
+
+    public function branch()
+    {
+        return $this->belongsTo(BranchWorkplaceModel::class, 'brwp_id', 'id');
     }
 }

@@ -16,7 +16,7 @@ class EmployeeModel extends Model
     protected $keyType = 'int'; // or 'string' if your key is not numeric
     protected $fillable = [
         'employee_number', 'lastname', 'firstname', 'middlename', 'suffix', 'gender', 'date_of_birth', 'place_of_birth', 'civil_status', 'personal_email',
-        'street', 'barangay', 'city', 'province', 'religion', 'date_employed', 'college_code', 'department', 'branch_code', 'position_id', 'account_status', 'pagibig', 'philhealth', 'tin', 'sss', 'biometric_id',
+        'street', 'barangay', 'city', 'province', 'religion', 'date_employed', 'college_code', 'department', 'brwp_id', 'position_id', 'account_status', 'pagibig', 'philhealth', 'tin', 'sss', 'biometric_id',
         'national_id', 'spouse_name', 'spouse_occupation', 'spouse_empl_name', 'father_name', 'mother_name', 'childrens', 'eci_name', 'eci_cnumber', 'date_inputted', 'inputted_byname', 'inputted_byid',
         'updated_at', 'es_id', 'updated_byname', 'updated_by_id', 'profile_picture', 'is_deleted', 'is_archived', 'citizenship', 'height', 'weight', 'drivers_license_no', 'telephone_no', 'cellphone_no', 'eci_address'
     ];

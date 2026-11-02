@@ -6,6 +6,7 @@ use App\Http\Controllers\SigninController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\PositionsController;
 use App\Http\Controllers\BranchController;
+use App\Http\Controllers\BranchAreaMovementController;
 use App\Http\Controllers\EmploymentStatusController;
 use App\Http\Controllers\WeeklySchedulesController;
 use App\Http\Controllers\SalaryGradeController;
@@ -89,8 +90,14 @@ Route::post('/salary-grades/delete/{id}', [SalaryGradeController::class, 'destro
 
 Route::get('/branches', [BranchController::class, 'index'])->name('branches.index');
 Route::post('/branches/store', [BranchController::class, 'store'])->name('branches.store');
-Route::post('/branches/update/{branch_code}', [BranchController::class, 'update'])->name('branches.update');
-Route::post('/branches/delete/{branch_code}', [BranchController::class, 'destroy'])->name('branches.delete');
+Route::post('/branches/update/{id}', [BranchController::class, 'update'])->where('id', '[0-9]+')->name('branches.update');
+Route::post('/branches/delete/{id}', [BranchController::class, 'destroy'])->where('id', '[0-9]+')->name('branches.delete');
+
+Route::get('/area-grouping', [BranchAreaMovementController::class, 'index'])->name('area-grouping.index');
+Route::post('/area-grouping/store', [BranchAreaMovementController::class, 'store'])->name('area-grouping.store');
+Route::post('/area-grouping/update/{id}', [BranchAreaMovementController::class, 'update'])->where('id', '[0-9]+')->name('area-grouping.update');
+Route::post('/area-grouping/update-group', [BranchAreaMovementController::class, 'updateGroup'])->name('area-grouping.update-group');
+Route::post('/area-grouping/delete/{id}', [BranchAreaMovementController::class, 'destroy'])->where('id', '[0-9]+')->name('area-grouping.delete');
 
     Route::get('ws/load/{employee_id}', [WeeklySchedulesController::class, 'load_ws'])->name('ws.load');
     Route::get('ws/load_schedules/{employee_id}', [WeeklySchedulesController::class, 'load_schedules'])->name('schedules.load');

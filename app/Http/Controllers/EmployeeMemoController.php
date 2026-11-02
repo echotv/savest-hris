@@ -9,6 +9,7 @@ use App\Models\EmployeeMemo;
 use App\Models\EmployeeMemoEmployee;
 use App\Models\EmployeeMemoFile;
 use App\Models\EmployeeModel;
+use App\Models\BranchWorkplaceModel;
 use App\Models\SystemLogsModel;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -27,7 +28,7 @@ class EmployeeMemoController extends Controller
         if (empty($assigned)) return $query->whereRaw('1=0');
 
         return $query->whereHas('employeeLinks', fn($sq) =>
-            $sq->whereHas('employee', fn($esq) => $esq->whereIn('branch_code', $assigned))
+            $sq->whereHas('employee', fn($esq) => $esq->whereIn('brwp_id', $assigned))
         );
     }
 
@@ -36,7 +37,7 @@ class EmployeeMemoController extends Controller
         $assigned = userBranches();
 
         return EmployeeModel::where('is_deleted', 0)
-            ->when($assigned !== null, fn($q) => empty($assigned) ? $q->whereRaw('1=0') : $q->whereIn('branch_code', $assigned))
+            ->when($assigned !== null, fn($q) => empty($assigned) ? $q->whereRaw('1=0') : $q->whereIn('brwp_id', $assigned))
             ->orderBy('lastname')->orderBy('firstname')
             ->get();
     }
@@ -81,7 +82,7 @@ class EmployeeMemoController extends Controller
         if ($assigned === null) return null;
 
         $outside = empty($assigned)
-            || EmployeeModel::whereIn('employee_id', $employeeIds)->whereNotIn('branch_code', $assigned)->exists();
+            || EmployeeModel::whereIn('employee_id', $employeeIds)->whereNotIn('brwp_id', $assigned)->exists();
 
         return $outside
             ? response()->json(['message' => 'You can only issue memos to employees in your assigned branches.'], 403)
@@ -151,7 +152,7 @@ class EmployeeMemoController extends Controller
               ->orderByDesc('employee_memos.date_issued')
               ->orderByDesc('employee_memos.id');
 
-        $branchMap = \App\Models\BranchModel::pluck('branch_name', 'branch_code');
+        $branchMap = BranchWorkplaceModel::pluck('name', 'id');
         $canEdit   = userCan('UPDATE EMPLOYEE MEMOS');
         $canDelete = userCan('DELETE EMPLOYEE MEMOS');
 
@@ -163,7 +164,7 @@ class EmployeeMemoController extends Controller
                     if (!$emp) return null;
                     return trim($emp->firstname . ' ' . $emp->lastname)
                         . '|' . $emp->employee_number
-                        . '|' . $branchMap->get($emp->branch_code, $emp->branch_code)
+                        . '|' . $branchMap->get($emp->brwp_id, $emp->brwp_id)
                         . '|' . $emp->employee_id;
                 })->filter()->join(';;');
             })

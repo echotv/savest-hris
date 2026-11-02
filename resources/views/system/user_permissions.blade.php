@@ -174,6 +174,8 @@ $palette = [
 $privGroups = [
     ['key'=>'branches',  'label'=>'Branches',          'class'=>'branch-group',
      'items'=>['VIEW BRANCHES','CREATE NEW BRANCH','UPDATE BRANCH','DELETE BRANCH']],
+    ['key'=>'area_grouping', 'label'=>'Area Grouping', 'class'=>'',
+     'items'=>['VIEW AREA GROUPING','ADD AREA GROUPING','UPDATE AREA GROUPING','DELETE AREA GROUPING']],
     ['key'=>'employees', 'label'=>'Employee Management','class'=>'',
      'items'=>['VIEW LIST OF EMPLOYEES','ADD NEW EMPLOYEE','UPDATE EMPLOYEE INFO','UPDATE EMPLOYMENT STATUS',
                'UPDATE PROFILE PICTURE','VIEW EMPLOYEE WEEKLY SCHEDULES','UPDATE EMPLOYEE WEEKLY SCHEDULES',
@@ -262,7 +264,7 @@ $privGroups = [
                             @foreach ($types as $type)
                             @php
                                 $userPrivileges   = \App\Models\UserPrivilegeModel::where('ut_id', $type->ut_id)->pluck('privilege')->toArray();
-                                $assignedBranches = \App\Models\AssignedBranchModel::where('ut_id', $type->ut_id)->pluck('branch_code')->toArray();
+                                $assignedBranches = \App\Models\AssignedBranchModel::where('ut_id', $type->ut_id)->pluck('brwp_id')->toArray();
                                 $badgeColor       = $type->color_code ?? '#1b55e2';
                                 $userCount        = \App\Models\User::withoutDeletedEmployees()->where('ut_id', $type->ut_id)->count();
                             @endphp
@@ -379,13 +381,13 @@ $privGroups = [
                                                             @endforeach
                                                             {{-- Assigned Branches --}}
                                                             <div class="priv-group assigned-group">
-                                                                <div class="priv-group-label">Assigned Branches</div>
+                                                                <div class="priv-group-label">Assigned Branches/Workplaces</div>
                                                                 <div class="priv-grid">
                                                                     @foreach($branches as $branch)
-                                                                    @php $bid = 'e'.$type->ut_id.'_br_'.$branch->branch_code; @endphp
+                                                                    @php $bid = 'e'.$type->ut_id.'_br_'.$branch->id; @endphp
                                                                     <label class="priv-item" for="{{ $bid }}">
-                                                                        <input type="checkbox" name="assigned_branches[]" value="{{ $branch->branch_code }}" id="{{ $bid }}" {{ in_array($branch->branch_code, $assignedBranches) ? 'checked' : '' }}>
-                                                                        <span>{{ $branch->branch_name }} <span class="text-muted" style="font-size:0.68rem;">({{ $branch->branch_code }})</span></span>
+                                                                        <input type="checkbox" name="assigned_branches[]" value="{{ $branch->id }}" id="{{ $bid }}" {{ in_array($branch->id, $assignedBranches) ? 'checked' : '' }}>
+                                                                        <span>{{ $branch->name }} <span class="text-muted" style="font-size:0.68rem;">({{ $branch->brwp_code }})</span></span>
                                                                     </label>
                                                                     @endforeach
                                                                 </div>
@@ -489,12 +491,12 @@ $privGroups = [
                                 @endforeach
                                 {{-- Assigned Branches --}}
                                 <div class="priv-group assigned-group">
-                                    <div class="priv-group-label">Assigned Branches</div>
+                                    <div class="priv-group-label">Assigned Branches/Workplaces</div>
                                     <div class="priv-grid">
                                         @foreach($branches as $branch)
-                                        <label class="priv-item" for="c_br_{{ $branch->branch_code }}">
-                                            <input type="checkbox" name="assigned_branches[]" value="{{ $branch->branch_code }}" id="c_br_{{ $branch->branch_code }}">
-                                            <span>{{ $branch->branch_name }} <span class="text-muted" style="font-size:0.68rem;">({{ $branch->branch_code }})</span></span>
+                                        <label class="priv-item" for="c_br_{{ $branch->id }}">
+                                            <input type="checkbox" name="assigned_branches[]" value="{{ $branch->id }}" id="c_br_{{ $branch->id }}">
+                                            <span>{{ $branch->name }} <span class="text-muted" style="font-size:0.68rem;">({{ $branch->brwp_code }})</span></span>
                                         </label>
                                         @endforeach
                                     </div>

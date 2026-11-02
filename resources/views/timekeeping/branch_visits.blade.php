@@ -95,21 +95,21 @@
                 <div class="row g-3 align-items-end">
 
                     <div class="col-md-3">
-                        <label class="form-label text-muted small fw-bold text-uppercase">Employee Branch</label>
+                        <label class="form-label text-muted small fw-bold text-uppercase">Employee Branch/Workplace</label>
                         <select id="filter_branch">
-                            <option value="">All Branches</option>
+                            <option value="">All Branches/Workplaces</option>
                             @foreach($branches as $br)
-                                <option value="{{ $br->branch_code }}">{{ $br->branch_name }}</option>
+                                <option value="{{ $br->id }}">{{ $br->name }}</option>
                             @endforeach
                         </select>
                     </div>
 
                     <div class="col-md-3">
-                        <label class="form-label text-muted small fw-bold text-uppercase">Visited Branch</label>
+                        <label class="form-label text-muted small fw-bold text-uppercase">Visited Branch/Workplace</label>
                         <select id="filter_visited_branch">
-                            <option value="">All Branches</option>
+                            <option value="">All Branches/Workplaces</option>
                             @foreach($allBranches as $br)
-                                <option value="{{ $br->branch_code }}">{{ $br->branch_name }}</option>
+                                <option value="{{ $br->id }}">{{ $br->name }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -199,11 +199,11 @@
                     {{-- Branches to Visit --}}
                     <div class="col-12">
                         <label class="form-label fw-medium text-secondary small">
-                            Branch(es) to Visit <span class="text-danger">*</span>
+                            Branch(es)/Workplace(s) to Visit <span class="text-danger">*</span>
                         </label>
                         <select id="visit_branch_codes" class="form-select form-select-sm rounded" multiple>
                             @foreach($allBranches as $br)
-                                <option value="{{ $br->branch_code }}">{{ $br->branch_name }}</option>
+                                <option value="{{ $br->id }}">{{ $br->name }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -604,7 +604,7 @@ $(document).ready(function () {
             payload['employee_id[' + i + ']'] = eid;
         });
         branchCodes.forEach(function (bc, i) {
-            payload['branch_codes[' + i + ']'] = bc;
+            payload['brwp_ids[' + i + ']'] = bc;
         });
         days.forEach(function (d, i) {
             payload['days[' + i + '][date]']       = d.date;

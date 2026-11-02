@@ -21,7 +21,7 @@ class AssignedBranchModel extends Model
 
     protected $fillable = [
         'ut_id',
-        'branch_code'
+        'brwp_id'
     ];
 
     /*
@@ -37,6 +37,6 @@ class AssignedBranchModel extends Model
 
     public function branch()
     {
-        return $this->belongsTo(BranchModel::class, 'branch_code', 'branch_code');
+        return $this->belongsTo(BranchWorkplaceModel::class, 'brwp_id', 'id');
     }
 }

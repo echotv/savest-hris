@@ -10,7 +10,7 @@ class BiometricId extends Model
 
     protected $fillable = [
         'employee_id',
-        'branch_code',
+        'brwp_id',
         'biometric_id',
         'is_deleted',
     ];
@@ -22,6 +22,6 @@ class BiometricId extends Model
 
     public function branch()
     {
-        return $this->belongsTo(BranchModel::class, 'branch_code', 'branch_code');
+        return $this->belongsTo(BranchWorkplaceModel::class, 'brwp_id', 'id');
     }
 }

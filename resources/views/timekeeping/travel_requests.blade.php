@@ -97,11 +97,11 @@
                 <div class="row g-3 align-items-end">
 
                     <div class="col-md-3">
-                        <label class="form-label text-muted small fw-bold text-uppercase">Branch</label>
+                        <label class="form-label text-muted small fw-bold text-uppercase">Branch/Workplace</label>
                         <select id="filter_branch">
-                            <option value="">All Branches</option>
+                            <option value="">All Branches/Workplaces</option>
                             @foreach($branches as $br)
-                                <option value="{{ $br->branch_code }}">{{ $br->branch_name }}</option>
+                                <option value="{{ $br->id }}">{{ $br->name }}</option>
                             @endforeach
                         </select>
                     </div>

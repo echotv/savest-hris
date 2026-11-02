@@ -22,21 +22,21 @@
     {{-- HEADER --}}
     <div class="col-12 d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center mb-4 gap-3">
         <div>
-            <h3 class="fw-bold text-dark tracking-tight mb-1">Branches</h3>
-            <p class="text-muted small mb-0">Manage and configure company branch locations.</p>
+            <h3 class="fw-bold text-dark tracking-tight mb-1">Branches/Workplaces</h3>
+            <p class="text-muted small mb-0">Manage and configure company branches and other workplaces.</p>
         </div>
         <div class="d-flex flex-column align-items-start align-items-sm-end gap-2">
             <nav class="breadcrumb-style-one" aria-label="breadcrumb">
                 <ol class="breadcrumb mb-0">
                     <li class="breadcrumb-item"><a href="#" class="text-muted text-decoration-none">Dashboard</a></li>
-                    <li class="breadcrumb-item active text-primary" aria-current="page">Branches</li>
+                    <li class="breadcrumb-item active text-primary" aria-current="page">Branches/Workplaces</li>
                 </ol>
             </nav>
             @if (in_array('CREATE NEW BRANCH', session('permissions', [])))
             <button class="btn btn-sm btn-primary d-flex align-items-center gap-1 px-3 shadow-sm mt-1"
                     data-bs-toggle="modal" data-bs-target="#CreateModal">
                 <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                Create New Branch
+                Create New Branch/Workplace
             </button>
             @endif
         </div>
@@ -66,14 +66,11 @@
             <div class="card-body">
                 <form method="GET" action="{{ route('branches.index') }}" class="row g-3 align-items-end">
                     <div class="col-md-3">
-                        <label class="form-label text-muted small fw-bold text-uppercase">Area</label>
-                        <select name="area" id="filter_area" class="form-select form-select-sm" onchange="this.form.submit();">
-                            <option value="">All Areas</option>
-                            @foreach ($areas as $area)
-                                <option value="{{ $area }}" @if (request('area') == $area) selected @endif>
-                                    Area {{ $area }}
-                                </option>
-                            @endforeach
+                        <label class="form-label text-muted small fw-bold text-uppercase">Type</label>
+                        <select name="is_branch" id="filter_is_branch" class="form-select form-select-sm" onchange="this.form.submit();">
+                            <option value="">All Types</option>
+                            <option value="1" @if (request('is_branch') === '1') selected @endif>Branch</option>
+                            <option value="0" @if (request('is_branch') === '0') selected @endif>Workplace</option>
                         </select>
                     </div>
                     <div class="col-md-3">
@@ -92,10 +89,10 @@
                     <table id="zero-config" class="table table-hover align-middle mb-0" style="width:100%">
                         <thead class="table-light text-uppercase font-12 tracking-wider">
                             <tr>
-                                <th class="border-0 ps-4 py-3">Branch Code</th>
-                                <th class="border-0 py-3">Branch Name</th>
-                                <th class="border-0 py-3">Area</th>
-                                <th class="border-0 py-3">Address</th>
+                                <th class="border-0 ps-4 py-3">Code</th>
+                                <th class="border-0 py-3">Name</th>
+                                <th class="border-0 py-3">Type</th>
+                                <th class="border-0 py-3">Location</th>
                                 <th class="border-0 py-3">Visible?</th>
                                 <th class="border-0 pe-4 py-3 text-end">Actions</th>
                             </tr>
@@ -103,10 +100,16 @@
                         <tbody>
                             @foreach($branches as $branch)
                             <tr>
-                                <td class="ps-4 fw-semibold">{{ $branch->branch_code }}</td>
-                                <td>{{ $branch->branch_name }}</td>
-                                <td>{{ $branch->area }}</td>
-                                <td class="text-muted">{{ $branch->address }}</td>
+                                <td class="ps-4 fw-semibold">{{ $branch->brwp_code }}</td>
+                                <td>{{ $branch->name }}</td>
+                                <td>
+                                    @if($branch->is_branch)
+                                        <span class="badge bg-light-primary">Branch</span>
+                                    @else
+                                        <span class="badge bg-light-success">Workplace</span>
+                                    @endif
+                                </td>
+                                <td class="text-muted">{{ $branch->location }}</td>
                                 <td>
                                     @if($branch->is_visible)
                                         <span class="badge bg-light-success">Yes</span>
@@ -119,20 +122,21 @@
                                     <button class="border-0 bg-transparent text-info d-inline-flex align-items-center justify-content-center p-0 tbtn"
                                         data-bs-toggle="modal"
                                         data-bs-target="#UpdateModal"
-                                        data-code="{{ $branch->branch_code }}"
-                                        data-name="{{ $branch->branch_name }}"
-                                        data-area="{{ $branch->area }}"
-                                        data-address="{{ $branch->address }}"
-                                        data-visible="{{ $branch->is_visible }}"
+                                        data-id="{{ $branch->id }}"
+                                        data-code="{{ $branch->brwp_code }}"
+                                        data-name="{{ $branch->name }}"
+                                        data-location="{{ $branch->location }}"
+                                        data-is-branch="{{ $branch->is_branch ? 1 : 0 }}"
+                                        data-visible="{{ $branch->is_visible ? 1 : 0 }}"
                                         title="Edit">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                                     </button>
                                     @endif
                                     @if (in_array('DELETE BRANCH', session('permissions', [])))
-                                    <form action="{{ route('branches.delete', $branch->branch_code) }}" method="POST" class="d-inline">
+                                    <form action="{{ route('branches.delete', $branch->id) }}" method="POST" class="d-inline">
                                         @csrf
                                         <button class="border-0 bg-transparent text-danger d-inline-flex align-items-center justify-content-center p-0 tbtn"
-                                            onclick="return confirm('Delete this branch?')"
+                                            onclick="return confirm('Delete this branch/workplace?')"
                                             title="Delete">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                                         </button>
@@ -144,10 +148,10 @@
                         </tbody>
                         <tfoot>
                             <tr>
-                                <th>Branch Code</th>
-                                <th>Branch Name</th>
-                                <th>Area</th>
-                                <th>Address</th>
+                                <th>Code</th>
+                                <th>Name</th>
+                                <th>Type</th>
+                                <th>Location</th>
                                 <th>Visible?</th>
                                 <th>Actions</th>
                             </tr>
@@ -170,7 +174,7 @@
             <div class="modal-header py-3">
                 <h5 class="modal-title fw-bold d-flex align-items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-primary"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
-                    Create New Branch
+                    Create New Branch/Workplace
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -178,20 +182,20 @@
                 <form action="{{ route('branches.store') }}" method="POST" id="branchForm">
                     @csrf
                     <div class="mb-3">
-                        <label class="form-label fw-medium text-secondary small">Branch Code <span class="text-danger">*</span></label>
-                        <input type="text" name="branch_code" class="form-control form-control-sm" value="Branch #" maxlength="20" required>
+                        <label class="form-label fw-medium text-secondary small">Code <span class="text-danger">*</span></label>
+                        <input type="text" name="brwp_code" class="form-control form-control-sm" value="BR/WP #" maxlength="20" required>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-medium text-secondary small">Branch Name <span class="text-danger">*</span></label>
-                        <input type="text" name="branch_name" class="form-control form-control-sm" maxlength="255" required>
+                        <label class="form-label fw-medium text-secondary small">Name <span class="text-danger">*</span></label>
+                        <input type="text" name="name" class="form-control form-control-sm" maxlength="255" required>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-medium text-secondary small">Area</label>
-                        <input type="number" name="area" class="form-control form-control-sm" step="1">
+                        <label class="form-label fw-medium text-secondary small">Location</label>
+                        <input type="text" name="location" class="form-control form-control-sm">
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-medium text-secondary small">Address</label>
-                        <input type="text" name="address" class="form-control form-control-sm">
+                    <div class="form-check mb-2">
+                        <input type="checkbox" name="is_branch" class="form-check-input" id="create_is_branch" checked>
+                        <label class="form-check-label text-dark small" for="create_is_branch">This is a branch (uncheck for a non-branch workplace)</label>
                     </div>
                     <div class="form-check">
                         <input type="checkbox" name="is_visible" class="form-check-input" id="create_visible" checked>
@@ -214,7 +218,7 @@
             <div class="modal-header py-3">
                 <h5 class="modal-title fw-bold d-flex align-items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-primary"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                    Update Branch
+                    Update Branch/Workplace
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -222,20 +226,20 @@
                 <form method="POST" id="updateBranchForm">
                     @csrf
                     <div class="mb-3">
-                        <label class="form-label fw-medium text-secondary small">Branch Code</label>
-                        <input type="text" id="update_branch_code" class="form-control form-control-sm bg-light" readonly>
+                        <label class="form-label fw-medium text-secondary small">Code <span class="text-danger">*</span></label>
+                        <input type="text" name="brwp_code" id="update_branch_code" class="form-control form-control-sm" maxlength="20" required>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-medium text-secondary small">Branch Name <span class="text-danger">*</span></label>
-                        <input type="text" name="branch_name" id="update_branch_name" class="form-control form-control-sm" maxlength="255" required>
+                        <label class="form-label fw-medium text-secondary small">Name <span class="text-danger">*</span></label>
+                        <input type="text" name="name" id="update_branch_name" class="form-control form-control-sm" maxlength="255" required>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-medium text-secondary small">Area</label>
-                        <input type="number" name="area" id="update_branch_area" class="form-control form-control-sm" step="1">
+                        <label class="form-label fw-medium text-secondary small">Location</label>
+                        <input type="text" name="location" id="update_branch_location" class="form-control form-control-sm">
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-medium text-secondary small">Address</label>
-                        <input type="text" name="address" id="update_branch_address" class="form-control form-control-sm">
+                    <div class="form-check mb-2">
+                        <input type="checkbox" name="is_branch" id="update_is_branch" class="form-check-input">
+                        <label class="form-check-label text-dark small" for="update_is_branch">This is a branch (uncheck for a non-branch workplace)</label>
                     </div>
                     <div class="form-check">
                         <input type="checkbox" name="is_visible" id="update_is_visible" class="form-check-input">
@@ -284,21 +288,22 @@ document.querySelectorAll('.btn[title], a.btn[title]').forEach(function(el) {
 document.addEventListener("DOMContentLoaded", function () {
     var updateModal = document.getElementById('UpdateModal');
     updateModal.addEventListener('show.bs.modal', function (event) {
-        var button = event.relatedTarget;
-        var code    = button.getAttribute('data-code');
-        var name    = button.getAttribute('data-name');
-        var area    = button.getAttribute('data-area');
-        var address = button.getAttribute('data-address');
-        var visible = button.getAttribute('data-visible');
+        var button    = event.relatedTarget;
+        var id        = button.getAttribute('data-id');
+        var code      = button.getAttribute('data-code');
+        var name      = button.getAttribute('data-name');
+        var location  = button.getAttribute('data-location');
+        var isBranch  = button.getAttribute('data-is-branch');
+        var visible   = button.getAttribute('data-visible');
 
         var form = document.getElementById('updateBranchForm');
-        form.action = '/branches/update/' + code;
+        form.action = '/branches/update/' + id;
 
-        document.getElementById('update_branch_code').value    = code;
-        document.getElementById('update_branch_name').value    = name;
-        document.getElementById('update_branch_area').value    = area;
-        document.getElementById('update_branch_address').value = address;
-        document.getElementById('update_is_visible').checked   = visible == 1;
+        document.getElementById('update_branch_code').value     = code;
+        document.getElementById('update_branch_name').value     = name;
+        document.getElementById('update_branch_location').value = location;
+        document.getElementById('update_is_branch').checked     = isBranch == 1;
+        document.getElementById('update_is_visible').checked    = visible == 1;
     });
 });
 </script>

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\EmployeePositionMovement;
 use App\Models\PositionsModel;
+use App\Models\BranchWorkplaceModel;
 use App\Models\EmployeeModel;
 use App\Models\SystemLogsModel;
 use Illuminate\Support\Facades\Auth;
@@ -15,17 +16,21 @@ class EmployeePositionMovementController extends Controller
     public function index($employee_id)
     {
         $employee = EmployeeModel::where('employee_id', $employee_id)
-            ->join('branches', 'employee.branch_code', '=', 'branches.branch_code')
+            ->join('branches_workplaces', 'employee.brwp_id', '=', 'branches_workplaces.id')
             ->join('positions', 'employee.position_id', '=', 'positions.position_id')
+            ->select('employee.*', 'branches_workplaces.brwp_code as branch_code', 'branches_workplaces.name as branch_name', 'positions.position_name')
             ->first();
 
         abort_if(!$employee, 404, 'Employee not found.');
 
        $epm_records = EmployeePositionMovement::select(
         'employee_position_movement.*',
-        'positions.position_name'
+        'positions.position_name',
+        'branches_workplaces.brwp_code as branch_code',
+        'branches_workplaces.name as branch_name'
     )
     ->join('positions', 'employee_position_movement.position_id', '=', 'positions.position_id')
+    ->join('branches_workplaces', 'employee_position_movement.brwp_id', '=', 'branches_workplaces.id')
     ->where('employee_position_movement.employee_id', $employee_id)
     ->where('employee_position_movement.is_deleted', 0)
     ->orderBy('employee_position_movement.effective_date', 'desc')
@@ -51,12 +56,18 @@ class EmployeePositionMovementController extends Controller
             ->where('is_archived', 0)
             ->get();
 
+        $branches = BranchWorkplaceModel::where('is_deleted', 0)
+            ->where('is_visible', 1)
+            ->orderBy('name')
+            ->get();
+
         return view('employee.cp_movement', compact(
             'employee',
             'epm_records',
             'current_record_id',
             'oldest_record_id',
             'positions',
+            'branches',
             'title',
             'menu',
         ));
@@ -68,6 +79,7 @@ class EmployeePositionMovementController extends Controller
 
         $request->validate([
             'position_id'    => 'required|exists:positions,position_id',
+            'brwp_id'        => 'required|exists:branches_workplaces,id',
             'effective_date' => 'required|date',
             'end_date'       => 'nullable|date|after_or_equal:effective_date',
         ]);
@@ -116,12 +128,13 @@ class EmployeePositionMovementController extends Controller
         EmployeePositionMovement::create([
             'employee_id'    => $employee_id,
             'position_id'    => $request->position_id,
+            'brwp_id'        => $request->brwp_id,
             'effective_date' => $request->effective_date,
             'end_date'       => $request->end_date ?: null,
         ]);
 
         EmployeeModel::where('employee_id', $employee_id)
-            ->update(['position_id' => $request->position_id]);
+            ->update(['position_id' => $request->position_id, 'brwp_id' => $request->brwp_id]);
 
         SystemLogsModel::addLog('Add Position Movement', "Position movement added for employee (ID: {$employee_id}), effective {$request->effective_date}.", Auth::id());
 
@@ -132,6 +145,7 @@ class EmployeePositionMovementController extends Controller
     {
         $request->validate([
             'position_id'    => 'required|exists:positions,position_id',
+            'brwp_id'        => 'required|exists:branches_workplaces,id',
             'effective_date' => 'required|date',
             'end_date'       => 'nullable|date|after_or_equal:effective_date',
         ]);
@@ -171,12 +185,13 @@ class EmployeePositionMovementController extends Controller
 
         $epm->update([
             'position_id'    => $request->position_id,
+            'brwp_id'        => $request->brwp_id,
             'effective_date' => $request->effective_date,
             'end_date'       => $request->end_date ?: null,
         ]);
 
         EmployeeModel::where('employee_id', $epm->employee_id)
-            ->update(['position_id' => $request->position_id]);
+            ->update(['position_id' => $request->position_id, 'brwp_id' => $request->brwp_id]);
 
         SystemLogsModel::addLog('Update Position Movement', "Position movement (ID: {$id}) updated.", Auth::id());
 
@@ -207,7 +222,7 @@ class EmployeePositionMovementController extends Controller
             ]);
 
             EmployeeModel::where('employee_id', $previous->employee_id)
-                ->update(['position_id' => $previous->position_id]);
+                ->update(['position_id' => $previous->position_id, 'brwp_id' => $previous->brwp_id]);
         }
 
         return back()->with('success', 'Position movement deleted successfully.');

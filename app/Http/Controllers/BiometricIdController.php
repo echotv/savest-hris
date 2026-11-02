@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\BiometricId;
-use App\Models\BranchModel;
+use App\Models\BranchWorkplaceModel;
 use App\Models\EmployeeModel;
 use App\Models\SystemLogsModel;
 use Illuminate\Support\Facades\Auth;
@@ -17,20 +17,20 @@ class BiometricIdController extends Controller
     public function index($employee_id)
     {
         $employee = EmployeeModel::where('employee_id', $employee_id)
-            ->join('branches', 'employee.branch_code', '=', 'branches.branch_code')
-            ->select('employee.*', 'branches.branch_name')
+            ->join('branches_workplaces', 'employee.brwp_id', '=', 'branches_workplaces.id')
+            ->select('employee.*', 'branches_workplaces.brwp_code as branch_code', 'branches_workplaces.name as branch_name')
             ->first();
 
         abort_if(!$employee, 404, 'Employee not found.');
 
         $biometric_records = BiometricId::where('biometric_ids.employee_id', $employee_id)
             ->where('biometric_ids.is_deleted', 0)
-            ->join('branches', 'biometric_ids.branch_code', '=', 'branches.branch_code')
-            ->select('biometric_ids.*', 'branches.branch_name')
-            ->orderBy('branches.branch_name')
+            ->join('branches_workplaces', 'biometric_ids.brwp_id', '=', 'branches_workplaces.id')
+            ->select('biometric_ids.*', 'branches_workplaces.brwp_code as branch_code', 'branches_workplaces.name as branch_name')
+            ->orderBy('branches_workplaces.name')
             ->get();
 
-        $branches = BranchModel::where('is_deleted', 0)->orderBy('branch_name')->get();
+        $branches = BranchWorkplaceModel::where('is_deleted', 0)->orderBy('name')->get();
 
         $title = 'Biometric IDs - SAVEST HRIS';
         $menu = 'Employee';
@@ -45,39 +45,40 @@ class BiometricIdController extends Controller
         abort_unless(EmployeeModel::where('employee_id', $employee_id)->exists(), 404);
 
         $request->validate([
-            'branch_code'   => 'required|exists:branches,branch_code',
+            'brwp_id'       => 'required|exists:branches_workplaces,id',
             'biometric_id'  => 'required|string|max:100',
         ]);
 
         $dupForEmployee = BiometricId::where('employee_id', $employee_id)
-            ->where('branch_code', $request->branch_code)
+            ->where('brwp_id', $request->brwp_id)
             ->where('is_deleted', 0)
             ->exists();
 
         if ($dupForEmployee) {
             return back()->withInput()->withErrors([
-                'branch_code' => 'This employee already has a biometric ID for that branch. Edit the existing row instead.'
+                'brwp_id' => 'This employee already has a biometric ID for that branch/workplace. Edit the existing row instead.'
             ]);
         }
 
-        $dupForBranch = BiometricId::where('branch_code', $request->branch_code)
+        $dupForBranch = BiometricId::where('brwp_id', $request->brwp_id)
             ->where('biometric_id', $request->biometric_id)
             ->where('is_deleted', 0)
             ->exists();
 
         if ($dupForBranch) {
             return back()->withInput()->withErrors([
-                'biometric_id' => 'That biometric ID is already assigned to another employee at this branch.'
+                'biometric_id' => 'That biometric ID is already assigned to another employee at this branch/workplace.'
             ]);
         }
 
         BiometricId::create([
             'employee_id'   => $employee_id,
-            'branch_code'   => $request->branch_code,
+            'brwp_id'       => $request->brwp_id,
             'biometric_id'  => $request->biometric_id,
         ]);
 
-        SystemLogsModel::addLog('Add Biometric ID', "Biometric ID '{$request->biometric_id}' assigned to employee (ID: {$employee_id}) for branch {$request->branch_code}.", Auth::id());
+        $branchName = BranchWorkplaceModel::find($request->brwp_id)?->name;
+        SystemLogsModel::addLog('Add Biometric ID', "Biometric ID '{$request->biometric_id}' assigned to employee (ID: {$employee_id}) for {$branchName}.", Auth::id());
 
         return back()->with('success', 'Biometric ID saved successfully.');
     }
@@ -87,23 +88,23 @@ class BiometricIdController extends Controller
         $record = BiometricId::findOrFail($id);
 
         $request->validate([
-            'branch_code'   => 'required|exists:branches,branch_code',
+            'brwp_id'       => 'required|exists:branches_workplaces,id',
             'biometric_id'  => 'required|string|max:100',
         ]);
 
         $dupForEmployee = BiometricId::where('employee_id', $record->employee_id)
-            ->where('branch_code', $request->branch_code)
+            ->where('brwp_id', $request->brwp_id)
             ->where('id', '!=', $record->id)
             ->where('is_deleted', 0)
             ->exists();
 
         if ($dupForEmployee) {
             return back()->withInput()->withErrors([
-                'branch_code' => 'This employee already has a biometric ID for that branch.'
+                'brwp_id' => 'This employee already has a biometric ID for that branch/workplace.'
             ]);
         }
 
-        $dupForBranch = BiometricId::where('branch_code', $request->branch_code)
+        $dupForBranch = BiometricId::where('brwp_id', $request->brwp_id)
             ->where('biometric_id', $request->biometric_id)
             ->where('id', '!=', $record->id)
             ->where('is_deleted', 0)
@@ -111,12 +112,12 @@ class BiometricIdController extends Controller
 
         if ($dupForBranch) {
             return back()->withInput()->withErrors([
-                'biometric_id' => 'That biometric ID is already assigned to another employee at this branch.'
+                'biometric_id' => 'That biometric ID is already assigned to another employee at this branch/workplace.'
             ]);
         }
 
         $record->update([
-            'branch_code'   => $request->branch_code,
+            'brwp_id'       => $request->brwp_id,
             'biometric_id'  => $request->biometric_id,
         ]);
 
@@ -143,25 +144,25 @@ class BiometricIdController extends Controller
     public function all(Request $request)
     {
         // RBAC-scoped roster, for the filter dropdowns + Add modal — unfiltered.
-        $employees = EmployeeModel::join('assigned_branches', 'assigned_branches.branch_code', '=', 'employee.branch_code')
-            ->join('branches', 'employee.branch_code', '=', 'branches.branch_code')
+        $employees = EmployeeModel::join('assigned_branches', 'assigned_branches.brwp_id', '=', 'employee.brwp_id')
+            ->join('branches_workplaces', 'employee.brwp_id', '=', 'branches_workplaces.id')
             ->where('employee.is_deleted', 0)
             ->where('employee.is_archived', 0)
             ->where('assigned_branches.ut_id', Auth::user()->ut_id)
-            ->select('employee.*', 'branches.branch_name')
+            ->select('employee.*', 'branches_workplaces.brwp_code as branch_code', 'branches_workplaces.name as branch_name')
             ->distinct()
             ->orderBy('employee.lastname')
             ->get();
 
         // Same roster, filtered down for the table rows.
-        $rowsQuery = EmployeeModel::join('assigned_branches', 'assigned_branches.branch_code', '=', 'employee.branch_code')
-            ->join('branches', 'employee.branch_code', '=', 'branches.branch_code')
+        $rowsQuery = EmployeeModel::join('assigned_branches', 'assigned_branches.brwp_id', '=', 'employee.brwp_id')
+            ->join('branches_workplaces', 'employee.brwp_id', '=', 'branches_workplaces.id')
             ->where('employee.is_deleted', 0)
             ->where('employee.is_archived', 0)
             ->where('assigned_branches.ut_id', Auth::user()->ut_id);
 
         if ($request->filled('branch_code')) {
-            $rowsQuery->where('employee.branch_code', $request->branch_code);
+            $rowsQuery->where('employee.brwp_id', $request->branch_code);
         }
 
         if ($request->filled('employee_id')) {
@@ -186,25 +187,26 @@ class BiometricIdController extends Controller
         }
 
         $employee_rows = $rowsQuery
-            ->select('employee.*', 'branches.branch_name')
+            ->select('employee.*', 'branches_workplaces.brwp_code as branch_code', 'branches_workplaces.name as branch_name')
             ->distinct()
             ->orderBy('employee.lastname')
             ->get();
 
         // Every non-deleted biometric record for these employees, grouped by employee —
-        // an employee can have more than one (one per branch), so this stays a list, not a map.
+        // an employee can have more than one (one per branch/workplace), so this stays a list, not a map.
         $biometricByEmployee = BiometricId::where('biometric_ids.is_deleted', 0)
             ->whereIn('biometric_ids.employee_id', $employee_rows->pluck('employee_id'))
-            ->join('branches', 'biometric_ids.branch_code', '=', 'branches.branch_code')
+            ->join('branches_workplaces', 'biometric_ids.brwp_id', '=', 'branches_workplaces.id')
             ->join('employee', 'biometric_ids.employee_id', '=', 'employee.employee_id')
             ->select(
                 'biometric_ids.*',
-                'branches.branch_name as biometric_branch_name',
+                'branches_workplaces.brwp_code as biometric_branch_code',
+                'branches_workplaces.name as biometric_branch_name',
                 'employee.lastname',
                 'employee.firstname',
                 'employee.employee_number'
             )
-            ->orderBy('branches.branch_name')
+            ->orderBy('branches_workplaces.name')
             ->get()
             ->groupBy('employee_id');
 
@@ -215,7 +217,7 @@ class BiometricIdController extends Controller
         // Flattened, for the Edit/Delete modals and their TomSelects — one set per record, not per employee.
         $all_biometric_records = $employee_rows->flatMap(fn ($emp) => $emp->biometric_records);
 
-        $branches = BranchModel::where('is_deleted', 0)->orderBy('branch_name')->get();
+        $branches = BranchWorkplaceModel::where('is_deleted', 0)->orderBy('name')->get();
 
         $title = 'Biometric IDs - SAVEST HRIS';
         $menu = 'Employee';

@@ -12,7 +12,7 @@ class SalaryGradeController extends Controller
 {
     public function index()
     {
-        $salaryGrades = SalaryGrade::orderBy('grade_level')->orderBy('step')->get();
+        $salaryGrades = SalaryGrade::where('is_deleted', 0)->orderBy('grade_level')->orderBy('step')->get();
         $title = 'Salary Grades - SAVEST HRIS';
         $menu = 'Company Setup';
         return view('employee.salarygrade', compact(['salaryGrades', 'title' ,'menu']));
@@ -22,7 +22,7 @@ class SalaryGradeController extends Controller
 {
     $data = $request->validate([
     'grade_level'   => 'required|integer|min:0|max:100',
-    'step'          => 'required|integer|min:0|max:100',
+    'step'          => 'required|string|max:20',
     'basic_salary'  => 'required|numeric|min:0|max:9999999999.99',
 ]);
 
@@ -35,6 +35,7 @@ class SalaryGradeController extends Controller
     // Better duplicate check
     $exists = SalaryGrade::where('grade_level', $data['grade_level'])
         ->where('step', $data['step'])
+        ->where('is_deleted', 0)
         ->exists();
 
     if ($exists) {
@@ -56,7 +57,7 @@ class SalaryGradeController extends Controller
 
     $data = $request->validate([
     'grade_level'   => 'required|integer|min:0|max:100',
-    'step'          => 'required|integer|min:0|max:100',
+    'step'          => 'required|string|max:20',
     'basic_salary'  => 'required|numeric|min:0|max:9999999999.99',
 ]);
 
@@ -68,6 +69,7 @@ class SalaryGradeController extends Controller
     $exists = SalaryGrade::where('grade_level', $data['grade_level'])
         ->where('step', $data['step'])
         ->where('salary_grade_id', '!=', $salaryGrade->salary_grade_id)
+        ->where('is_deleted', 0)
         ->exists();
 
     if ($exists) {
@@ -90,8 +92,10 @@ class SalaryGradeController extends Controller
 
     public function destroy($id)
     {
+        if (!userCan('DELETE SALARY GRADE')) abort(403);
+
         $salaryGrade = SalaryGrade::findOrFail($id);
-        $salaryGrade->delete();
+        $salaryGrade->update(['is_deleted' => 1]);
 
         SystemLogsModel::addLog('Delete Salary Grade', "Salary Grade (Level {$salaryGrade->grade_level}, Step {$salaryGrade->step}) was deleted.", Auth::id());
 

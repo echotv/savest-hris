@@ -188,7 +188,7 @@ $privGroups = [
     ['key'=>'schedules', 'label'=>'Weekly Schedules',   'class'=>'',
      'items'=>['VIEW WEEKLY SCHEDULES','UPDATE WEEKLY SCHEDULES']],
     ['key'=>'salary',    'label'=>'Salary Grade',       'class'=>'',
-     'items'=>['VIEW SALARY GRADE','ADD NEW SALARY GRADE','UPDATE SALARY GRADE']],
+     'items'=>['VIEW SALARY GRADE','ADD NEW SALARY GRADE','UPDATE SALARY GRADE','DELETE SALARY GRADE']],
     ['key'=>'positions', 'label'=>'Company Positions',  'class'=>'',
      'items'=>['VIEW COMPANY POSITIONS','EDIT COMPANY POSITIONS','RESTORE AND ARCHIVE COMPANY POSITION']],
     ['key'=>'empstatus', 'label'=>'Employment Status',  'class'=>'',

@@ -65,7 +65,8 @@ class EmployeeController extends Controller
             'title' => 'Employee Registration Form - SAVEST HRIS',
             'menu' => 'Employee',
             'positions_list' => PositionsModel::where(['is_deleted' => 0, 'is_archived' => 0])->get(),
-                        'employment_statuses' => EmploymentStatusModel::where(['is_deleted'=> 0, 'is_visible'=> 1])->orderBy('empl_status', 'ASC')->get()
+            'branches_list' => BranchWorkplaceModel::where('is_deleted', 0)->where('is_visible', 1)->orderBy('name')->get(),
+            'employment_statuses' => EmploymentStatusModel::where(['is_deleted'=> 0, 'is_visible'=> 1])->orderBy('empl_status', 'ASC')->get()
         ];
         return view("employee/employee_reg_form", $data);
     }
@@ -79,23 +80,43 @@ class EmployeeController extends Controller
     $future_start = $today->copy()->addDay();       // start tomorrow
     $future_end = $today->copy()->addDays(14);      // end 14 days after tomorrow
 
+    // RBAC: scoped to this user's assigned branches, but an employee with no
+    // branch yet (Branch/Workplace is no longer set at registration) can't
+    // match any of them, so always include them too — same reasoning as the
+    // Employee List fix.
+    $assignedBranchIds = AssignedBranchModel::where('ut_id', Auth::user()->ut_id)->pluck('brwp_id');
+    $employeesBase = function () use ($assignedBranchIds) {
+        return EmployeeModel::query()
+            ->join('employment_status', 'employee.es_id', '=', 'employment_status.es_id')
+            // employment_status also has its own is_deleted column — without this
+            // explicit select, the join's implicit "SELECT *" would collapse the
+            // two into one "is_deleted" key and silently overwrite the employee's.
+            ->select('employee.*')
+            ->where('employee.is_deleted', 0)
+            // employee.employment_status is a legacy free-text column that's
+            // never written to (the app uses es_id -> employment_status.is_current_employee
+            // instead) — it's NULL for every employee, so filtering on it here
+            // excluded everyone from this page. Use the real current-employee flag.
+            ->where('employment_status.is_current_employee', 1)
+            ->where(function ($q) use ($assignedBranchIds) {
+                $q->whereIn('employee.brwp_id', $assignedBranchIds);
+                if ($assignedBranchIds->isNotEmpty()) {
+                    $q->orWhereNull('employee.brwp_id');
+                }
+            });
+    };
+
     $data = [
         'title' => 'Upcoming Birthdays - SAVEST HRIS',
         'menu'  => 'Employee',
 
         // 🎉 Today's birthdays
-        'todays_birthday' =>AssignedBranchModel::join('employee', 'assigned_branches.brwp_id', '=', 'employee.brwp_id')
-       ->where('employee.is_deleted', 0, )
-       ->where('assigned_branches.ut_id', Auth::user()->ut_id)
-            ->where('employee.employment_status', '!=', 'Resigned')
+        'todays_birthday' => $employeesBase()
             ->whereRaw("DATE_FORMAT(employee.date_of_birth, '%m-%d') = ?", [$today_md])
             ->get(),
 
         // ⬅️ Birthdays from the past 7 days
-        'previous_birthdays' =>AssignedBranchModel::join('employee', 'assigned_branches.brwp_id', '=', 'employee.brwp_id')
-       ->where('employee.is_deleted', 0, )
-       ->where('assigned_branches.ut_id', Auth::user()->ut_id)
-            ->where('employee.employment_status', '!=', 'Resigned')
+        'previous_birthdays' => $employeesBase()
             ->whereBetween(
                 DB::raw("DATE_FORMAT(employee.date_of_birth, '%m-%d')"),
                 [$past_start->format('m-d'), $today->copy()->subDay()->format('m-d')]
@@ -104,10 +125,7 @@ class EmployeeController extends Controller
             ->get(),
 
         // ➡️ Birthdays from tomorrow until the next 14 days
-        'upcoming_birthdays' => AssignedBranchModel::join('employee', 'assigned_branches.brwp_id', '=', 'employee.brwp_id')
-       ->where('employee.is_deleted', 0, )
-       ->where('assigned_branches.ut_id', Auth::user()->ut_id)
-            ->where('employee.employment_status', '!=', 'Resigned')
+        'upcoming_birthdays' => $employeesBase()
             ->whereBetween(
                 DB::raw("DATE_FORMAT(employee.date_of_birth, '%m-%d')"),
                 [$future_start->format('m-d'), $future_end->format('m-d')]
@@ -129,23 +147,39 @@ class EmployeeController extends Controller
     $future_start = $today->copy()->addDay();   // start from tomorrow
     $future_end   = $today->copy()->addDays(14); // up to next 14 days
 
+    // RBAC: scoped to this user's assigned branches, but an employee with no
+    // branch yet (Branch/Workplace is no longer set at registration) can't
+    // match any of them, so always include them too — same reasoning as the
+    // Employee List fix.
+    $assignedBranchIds = AssignedBranchModel::where('ut_id', Auth::user()->ut_id)->pluck('brwp_id');
+    $employeesBase = function () use ($assignedBranchIds) {
+        return EmployeeModel::query()
+            ->join('employment_status', 'employee.es_id', '=', 'employment_status.es_id')
+            ->where('employee.is_deleted', 0)
+            // employee.employment_status is a legacy free-text column that's
+            // never written to (the app uses es_id -> employment_status.is_current_employee
+            // instead) — it's NULL for every employee, so filtering on it here
+            // excluded everyone from this page. Use the real current-employee flag.
+            ->where('employment_status.is_current_employee', 1)
+            ->where(function ($q) use ($assignedBranchIds) {
+                $q->whereIn('employee.brwp_id', $assignedBranchIds);
+                if ($assignedBranchIds->isNotEmpty()) {
+                    $q->orWhereNull('employee.brwp_id');
+                }
+            });
+    };
+
     $data = [
         'title' => 'Upcoming Work Anniversaries - SAVEST HRIS',
         'menu'  => 'Employee',
 
         // 🎉 Today's anniversaries
-        'todays_work_anniv' => AssignedBranchModel::join('employee', 'assigned_branches.brwp_id', '=', 'employee.brwp_id')
-       ->where('employee.is_deleted', 0, )
-       ->where('assigned_branches.ut_id', Auth::user()->ut_id)
-            ->where('employee.employment_status', '!=', 'Resigned')
+        'todays_work_anniv' => $employeesBase()
             ->whereRaw("DATE_FORMAT(employee.date_employed, '%m-%d') = ?", [$today_md])
             ->get(),
 
         // ⬅️ Past 7 days anniversaries
-        'previous_work_anniv' => AssignedBranchModel::join('employee', 'assigned_branches.brwp_id', '=', 'employee.brwp_id')
-       ->where('employee.is_deleted', 0, )
-       ->where('assigned_branches.ut_id', Auth::user()->ut_id)
-            ->where('employee.employment_status', '!=', 'Resigned')
+        'previous_work_anniv' => $employeesBase()
             ->whereBetween(
                 DB::raw("DATE_FORMAT(employee.date_employed, '%m-%d')"),
                 [$past_start->format('m-d'), $today->copy()->subDay()->format('m-d')]
@@ -154,10 +188,7 @@ class EmployeeController extends Controller
             ->get(),
 
         // ➡️ Upcoming anniversaries (starting tomorrow until next 14 days)
-        'upcoming_work_anniv' => AssignedBranchModel::join('employee', 'assigned_branches.brwp_id', '=', 'employee.brwp_id')
-       ->where('employee.is_deleted', 0, )
-       ->where('assigned_branches.ut_id', Auth::user()->ut_id)
-            ->where('employee.employment_status', '!=', 'Resigned')
+        'upcoming_work_anniv' => $employeesBase()
             ->whereBetween(
                 DB::raw("DATE_FORMAT(employee.date_employed, '%m-%d')"),
                 [$future_start->format('m-d'), $future_end->format('m-d')]
@@ -175,7 +206,7 @@ class EmployeeController extends Controller
     {
         $employee = EmployeeModel::where('employee.employee_id', $employee_id)
             ->join('employment_status', 'employee.es_id', '=', 'employment_status.es_id')
-            ->join('branches_workplaces', 'employee.brwp_id', '=', 'branches_workplaces.id')
+            ->join('branches_workplaces', 'employee.brwp_id', '=', 'branches_workplaces.id', 'left')
             ->join('positions', 'employee.position_id', '=', 'positions.position_id', 'left')
             ->select('employee.*', 'employment_status.empl_status', 'branches_workplaces.brwp_code as branch_code', 'branches_workplaces.name as branch_name', 'positions.position_name')
             ->first();
@@ -225,15 +256,25 @@ class EmployeeController extends Controller
 
     public function load_employee_list(Request $request)
 {
-    $query = AssignedBranchModel::join('employee', 'assigned_branches.brwp_id', '=', 'employee.brwp_id')
+    // RBAC: the branches this user is scoped to. An employee with no branch
+    // yet (Branch/Workplace is no longer set at registration) can't match any
+    // of them by definition, so without the explicit orWhereNull() below they
+    // would be invisible to every user forever — including the one who needs
+    // to open their profile and assign them a branch in the first place.
+    $assignedBranchIds = AssignedBranchModel::where('ut_id', Auth::user()->ut_id)->pluck('brwp_id');
+
+    $query = EmployeeModel::query()
         ->join('employment_status', 'employee.es_id', '=', 'employment_status.es_id')
-        ->join('branches_workplaces', 'employee.brwp_id', '=', 'branches_workplaces.id')
-        ->join('positions', 'employee.position_id', '=', 'positions.position_id')
-        ->where([
-            'employee.is_deleted' => 0,
-            'employee.is_archived' => 0,
-            'assigned_branches.ut_id' => Auth::user()->ut_id
-        ]);
+        ->leftJoin('branches_workplaces', 'employee.brwp_id', '=', 'branches_workplaces.id')
+        ->leftJoin('positions', 'employee.position_id', '=', 'positions.position_id')
+        ->where('employee.is_deleted', 0)
+        ->where('employee.is_archived', 0)
+        ->where(function ($q) use ($assignedBranchIds) {
+            $q->whereIn('employee.brwp_id', $assignedBranchIds);
+            if ($assignedBranchIds->isNotEmpty()) {
+                $q->orWhereNull('employee.brwp_id');
+            }
+        });
 
     // FILTERS (cleaner than array $where)
     if (!empty($request->branch_code) && $request->branch_code != 'All') {
@@ -250,6 +291,13 @@ class EmployeeController extends Controller
 
     if (!empty($request->date_employed) && $request->date_employed != '') {
         $query->whereDate('employee.date_employed', $request->date_employed);
+    }
+
+    // Position status: whether the employee has a position assigned yet.
+    if ($request->position_status === 'with') {
+        $query->whereNotNull('employee.position_id');
+    } elseif ($request->position_status === 'without') {
+        $query->whereNull('employee.position_id');
     }
 
     // Salary grade coverage: has at least one non-deleted salary_grade_movement row vs none.
@@ -270,10 +318,11 @@ class EmployeeController extends Controller
     }
 
     // Explicit column list — addSelect() below would otherwise collapse the implicit
-    // "SELECT *" down to just assigned_branches.* (the base table), silently dropping
-    // every joined column (employee_id included).
+    // "SELECT *" down to just the base table's columns, silently dropping every
+    // joined column.
     $query->select(
         'employee.*',
+        'branches_workplaces.brwp_code as branch_code',
         'branches_workplaces.name as branch_name',
         'positions.position_name',
         'employment_status.empl_status'
@@ -320,6 +369,7 @@ class EmployeeController extends Controller
             'employment_status' => $request->employment_status ?? 'All',
             'position_id' => $request->position_id ?? 'All',
             'date_employed' => $request->date_employed ?? '',
+            'position_status' => $request->position_status ?? 'all',
             'salary_grade' => $request->salary_grade ?? 'all',
         ],
 
@@ -357,6 +407,7 @@ class EmployeeController extends Controller
         'date_employed'   => 'required|date',
         'es_id'           => 'required|exists:employment_status,es_id',
         'position_id'     => 'required|exists:positions,position_id',
+        'brwp_id'         => 'required|exists:branches_workplaces,id',
         'pagibig'         => 'nullable|string|max:50',
         'philhealth'      => 'nullable|string|max:50',
         'tin'             => 'nullable|string|max:50',
@@ -440,6 +491,7 @@ class EmployeeController extends Controller
         'date_employed'   => 'Date Employed',
         'es_id'           => 'Employment Status',
         'position_id'     => 'Position',
+        'brwp_id'         => 'Branch/Workplace',
         'pagibig'         => 'PAGIBIG No.',
         'philhealth'      => 'PhilHealth No.',
         'tin'             => 'TIN No.',
@@ -997,7 +1049,7 @@ public function update_employee_number(Request $request){
     }
     public function export($employee_id)
     {
-        $employee = EmployeeModel::where('employee.employee_id', $employee_id)->join('positions', 'employee.position_id', '=', 'positions.position_id')->select('employee.*', 'positions.*')->first();
+        $employee = EmployeeModel::where('employee.employee_id', $employee_id)->leftJoin('positions', 'employee.position_id', '=', 'positions.position_id')->select('employee.*', 'positions.*')->first();
 
         abort_if(!$employee, 404, 'Employee not found.');
 
@@ -1158,14 +1210,19 @@ foreach($work_experiences as $we){
     {
         if (!userCan('DELETE EMPLOYEE')) abort(403);
 
-        $query = AssignedBranchModel::join('employee', 'assigned_branches.brwp_id', '=', 'employee.brwp_id')
+        $assignedBranchIds = AssignedBranchModel::where('ut_id', Auth::user()->ut_id)->pluck('brwp_id');
+
+        $query = EmployeeModel::query()
             ->join('employment_status', 'employee.es_id', '=', 'employment_status.es_id')
-            ->join('branches_workplaces', 'employee.brwp_id', '=', 'branches_workplaces.id')
-            ->join('positions', 'employee.position_id', '=', 'positions.position_id')
-            ->where([
-                'employee.is_deleted' => 1,
-                'assigned_branches.ut_id' => Auth::user()->ut_id
-            ])
+            ->leftJoin('branches_workplaces', 'employee.brwp_id', '=', 'branches_workplaces.id')
+            ->leftJoin('positions', 'employee.position_id', '=', 'positions.position_id')
+            ->where('employee.is_deleted', 1)
+            ->where(function ($q) use ($assignedBranchIds) {
+                $q->whereIn('employee.brwp_id', $assignedBranchIds);
+                if ($assignedBranchIds->isNotEmpty()) {
+                    $q->orWhereNull('employee.brwp_id');
+                }
+            })
             ->select('employee.*', 'employment_status.empl_status', 'branches_workplaces.brwp_code as branch_code', 'branches_workplaces.name as branch_name', 'positions.position_name');
 
         return view('employee.deleted_employees', [

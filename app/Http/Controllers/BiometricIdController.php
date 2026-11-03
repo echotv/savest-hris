@@ -17,7 +17,7 @@ class BiometricIdController extends Controller
     public function index($employee_id)
     {
         $employee = EmployeeModel::where('employee_id', $employee_id)
-            ->join('branches_workplaces', 'employee.brwp_id', '=', 'branches_workplaces.id')
+            ->leftJoin('branches_workplaces', 'employee.brwp_id', '=', 'branches_workplaces.id')
             ->select('employee.*', 'branches_workplaces.brwp_code as branch_code', 'branches_workplaces.name as branch_name')
             ->first();
 

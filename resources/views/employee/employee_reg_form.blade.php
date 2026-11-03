@@ -517,14 +517,6 @@ body.dark .section-nav-btn.active {
                     </div>
 
                     <div class="col-md-4 col-12 mb-2">
-                        <label class="form-label form-label-sm">Position <span class="text-danger">*</span></label>
-                        <select id="position_id" name="position_id" autocomplete="off">
-                            @foreach ($positions_list as $position)
-                                <option value="{{ $position->position_id }}" {{ (string) old('position_id') === (string) $position->position_id ? 'selected' : '' }}>{{ $position->position_name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="col-md-4 col-12 mb-2">
                         <label class="form-label form-label-sm">Employment Status <span class="text-danger">*</span></label>
                         <select class="form-select form-select-sm" id="es_id" name="es_id">
                             @foreach ($employment_statuses as $status)
@@ -533,6 +525,22 @@ body.dark .section-nav-btn.active {
                         </select>
                     </div>
 
+                    <div class="col-md-4 col-12 mb-2">
+                        <label class="form-label form-label-sm">Position <span class="text-danger">*</span></label>
+                        <select id="position_id" name="position_id" autocomplete="off">
+                            @foreach ($positions_list as $position)
+                                <option value="{{ $position->position_id }}" {{ (string) old('position_id') === (string) $position->position_id ? 'selected' : '' }}>{{ $position->position_name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-4 col-12 mb-2">
+                        <label class="form-label form-label-sm">Branch/Workplace <span class="text-danger">*</span></label>
+                        <select id="brwp_id" name="brwp_id" autocomplete="off">
+                            @foreach ($branches_list as $branch)
+                                <option value="{{ $branch->id }}" {{ (string) old('brwp_id') === (string) $branch->id ? 'selected' : '' }}>{{ $branch->brwp_code }} - {{ $branch->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
 
                 </div>
             </div>
@@ -1023,6 +1031,11 @@ document.addEventListener('DOMContentLoaded', function () {
         create: false,
         sortField: { field: "text", direction: "asc" },
         placeholder: "Select or type a position"
+    });
+    new TomSelect('#brwp_id', {
+        create: false,
+        sortField: { field: "text", direction: "asc" },
+        placeholder: "Select or type a branch/workplace"
     });
 });
 

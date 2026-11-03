@@ -35,6 +35,7 @@
             border: 2px solid #e9ecef; flex-shrink: 0;
         }
         .tbtn { width:24px; height:24px; }
+        #zero-config tbody tr { cursor: pointer; }
     </style>
 @endsection
 
@@ -128,12 +129,13 @@
                             </select>
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label text-muted small fw-bold text-uppercase">Date Employed</label>
-                            <input id="date_employed" class="form-control form-control-sm flatpickr-input"
-                                   type="text" name="date_employed"
-                                   value="{{ $data_filtered['date_employed'] }}"
-                                   placeholder="Select Date..."
-                                   onchange="document.getElementById('filterForm').submit();">
+                            <label class="form-label text-muted small fw-bold text-uppercase">Position Status</label>
+                            <select class="form-select form-select-sm" id="position_status" name="position_status"
+                                    onchange="document.getElementById('filterForm').submit();">
+                                <option value="all" @if ($data_filtered['position_status'] == 'all') selected @endif>All</option>
+                                <option value="with" @if ($data_filtered['position_status'] == 'with') selected @endif>With Position</option>
+                                <option value="without" @if ($data_filtered['position_status'] == 'without') selected @endif>Without Position</option>
+                            </select>
                         </div>
                         <div class="col-md-3">
                             <label class="form-label text-muted small fw-bold text-uppercase">Salary Grade</label>
@@ -159,11 +161,11 @@
                         <thead class="table-light text-uppercase font-12 tracking-wider">
                             <tr>
                                 <th class="border-0 ps-4 py-3">Employee</th>
-                                <th class="border-0 py-3">Branch</th>
+                                <th class="border-0 py-3">Branch/<br>Workplace</th>
                                 <th class="border-0 py-3">Position</th>
                                 <th class="border-0 py-3">Employment Status</th>
                                 <th class="border-0 py-3">Date Employed</th>
-                                <th class="border-0 py-3">Salary Grade</th>
+                                <th class="border-0 py-3">Status</th>
                                 <th class="border-0 pe-4 py-3 text-end">Actions</th>
                             </tr>
                         </thead>
@@ -184,16 +186,23 @@
                                         </div>
                                     </div>
                                 </td>
-                                <td class="font-13">{{ $employee->branch_code }} {{ $employee->branch_name }}</td>
-                                <td class="font-13">{{ $employee->position_name }}</td>
+                                <td class="font-13">{{ $employee->branch_code }}<br><small class="text-muted">{{ $employee->branch_name }}</small></td>
+                                <td class="font-13" title="{{ $employee->position_name }}">{{ Str::limit($employee->position_name, 20) }}</td>
                                 <td class="font-13">{{ $employee->empl_status }}</td>
                                 <td class="font-13">{{ \Carbon\Carbon::parse($employee->date_employed)->format('M d, Y') }}</td>
                                 <td class="font-13">
-                                    @if($employee->has_salary_grade)
-                                        <span class="badge bg-success-subtle text-success-emphasis">With Salary Grade</span>
-                                    @else
-                                        <span class="badge bg-warning-subtle text-warning-emphasis">Without Salary Grade Yet</span>
-                                    @endif
+                                    <div class="d-flex flex-column gap-1">
+                                        @if($employee->position_id)
+                                            <span class="badge bg-success-subtle text-success-emphasis">With Position</span>
+                                        @else
+                                            <span class="badge bg-warning-subtle text-warning-emphasis">Without Position Yet</span>
+                                        @endif
+                                        @if($employee->has_salary_grade)
+                                            <span class="badge bg-success-subtle text-success-emphasis">With Salary Grade</span>
+                                        @else
+                                            <span class="badge bg-warning-subtle text-warning-emphasis">Without Salary Grade Yet</span>
+                                        @endif
+                                    </div>
                                 </td>
                                 <td class="pe-4 text-end">
                                     <div class="btn-group dropdown-action" role="group">
@@ -367,8 +376,6 @@ document.addEventListener('DOMContentLoaded', function () {
         new bootstrap.Modal(document.getElementById('EmployeeNumberModal')).show();
     };
 
-    flatpickr('#date_employed');
-
     $('#zero-config').DataTable({
         dom:
             "<'dt--top-section'<'row'<'col-12 col-sm-6 d-flex justify-content-sm-start justify-content-center'l>" +
@@ -390,6 +397,22 @@ document.addEventListener('DOMContentLoaded', function () {
         stripeClasses: [],
         lengthMenu: [10, 20, 50],
         pageLength: 10
+    });
+
+    // Clicking anywhere on a row opens that row's action dropdown — clicks inside
+    // the actions cell itself (the toggle button, menu links) are left alone so
+    // they keep working exactly as before. stopPropagation() matters here:
+    // Bootstrap's own document-level "click outside the dropdown" listener would
+    // otherwise still see this same click (target = the row/cell, not the toggle)
+    // as it keeps bubbling past us, and immediately close the dropdown we just
+    // opened via the synthetic click on the toggle button.
+    $('#zero-config tbody').on('click', 'tr', function (e) {
+        if ($(e.target).closest('.dropdown-action').length) return;
+        const toggleEl = this.querySelector('[data-bs-toggle="dropdown"]');
+        if (toggleEl) {
+            e.stopPropagation();
+            toggleEl.click();
+        }
     });
 
     $('#zero-config').on('show.bs.dropdown', '.btn-group', function () {

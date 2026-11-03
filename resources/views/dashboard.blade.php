@@ -59,6 +59,7 @@
 
         /* Custom Status Identity Map */
         .status-active { --accent-color: #0d6efd; --bg-light: rgba(13, 110, 253, 0.06); --color-main: #0d6efd; }
+        .status-branch { --accent-color: #8b5cf6; --bg-light: rgba(139, 92, 246, 0.08); --color-main: #8b5cf6; }
         .status-salary { --accent-color: #4361ee; --bg-light: rgba(67, 97, 238, 0.08); --color-main: #4361ee; }
         .status-position { --accent-color: #0ea5e9; --bg-light: rgba(14, 165, 233, 0.08); --color-main: #0ea5e9; }
         .status-employment { --accent-color: #10b981; --bg-light: rgba(16, 185, 129, 0.08); --color-main: #10b981; }
@@ -190,6 +191,20 @@
                             </div>
                             <div class="modern-icon-box">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-4 col-lg-4 col-md-6 col-sm-12">
+                    <div class="card modern-stat-card p-4 status-branch">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <span class="text-muted small fw-semibold tracking-wide text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.05em;">Branches/Workplaces</span>
+                                <h2 class="fw-bold text-dark mt-2 mb-0 count-up" data-count-to="{{ $num_branches }}" style="letter-spacing: -0.02em;">0</h2>
+                            </div>
+                            <div class="modern-icon-box">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"></path><path d="M5 21V7l8-4 8 4v14"></path><path d="M9 21v-6h6v6"></path></svg>
                             </div>
                         </div>
                     </div>

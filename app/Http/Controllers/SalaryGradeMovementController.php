@@ -15,8 +15,8 @@ class SalaryGradeMovementController extends Controller
     public function index($employee_id)
     {
         $employee = EmployeeModel::where('employee_id', $employee_id)
-            ->join('branches_workplaces', 'employee.brwp_id', '=', 'branches_workplaces.id')
-            ->join('positions', 'employee.position_id', '=', 'positions.position_id')
+            ->leftJoin('branches_workplaces', 'employee.brwp_id', '=', 'branches_workplaces.id')
+            ->leftJoin('positions', 'employee.position_id', '=', 'positions.position_id')
             ->select('employee.*', 'branches_workplaces.brwp_code as branch_code', 'branches_workplaces.name as branch_name', 'positions.position_name')
             ->first();
 
@@ -39,7 +39,7 @@ $current_record_id = optional(
         ->first()
 )->sgm_id;
 
-        $salary_grades = SalaryGrade::where('is_active', 1)->get();
+        $salary_grades = SalaryGrade::where('is_active', 1)->where('is_deleted', 0)->get();
 
         $title = 'Salary Grade Movement - SAVEST HRIS';
     $menu = 'Employee';

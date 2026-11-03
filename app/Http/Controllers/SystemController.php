@@ -29,11 +29,20 @@ class SystemController extends Controller
         // Every non-deleted employee visible to this user's assigned branches —
         // the shared base population for the breakdown charts below. A function
         // (not a query built once) so each call starts a fresh builder instead
-        // of accumulating conditions from a previous use.
-        $employeesBase = function () {
-            return AssignedBranchModel::join('employee', 'assigned_branches.brwp_id', '=', 'employee.brwp_id')
+        // of accumulating conditions from a previous use. An employee with no
+        // branch yet (Branch/Workplace is no longer set at registration) can't
+        // match any assigned branch, so always include them too — otherwise
+        // they'd be missing from "Total Employees" and every pie chart below.
+        $assignedBranchIds = AssignedBranchModel::where('ut_id', Auth::user()->ut_id)->pluck('brwp_id');
+        $employeesBase = function () use ($assignedBranchIds) {
+            return EmployeeModel::query()
                 ->where('employee.is_deleted', 0)
-                ->where('assigned_branches.ut_id', Auth::user()->ut_id);
+                ->where(function ($q) use ($assignedBranchIds) {
+                    $q->whereIn('employee.brwp_id', $assignedBranchIds);
+                    if ($assignedBranchIds->isNotEmpty()) {
+                        $q->orWhereNull('employee.brwp_id');
+                    }
+                });
         };
 
         $totalEmployees = $employeesBase()->count();
@@ -88,25 +97,16 @@ class SystemController extends Controller
         $data =[
             'title' => 'Dashboard - SAVEST HRIS',
             'menu' => 'Dashboard',
-            'num_active' => AssignedBranchModel::join('employee', 'assigned_branches.brwp_id', '=', 'employee.brwp_id')
-       ->join('employment_status', 'employee.es_id', '=', 'employment_status.es_id')
-            ->where('employee.is_deleted', 0, )
-       ->where('assigned_branches.ut_id', Auth::user()->ut_id)
-       ->where('employment_status.is_current_employee', 1)->count(),
-        'todays_birthdays' =>  AssignedBranchModel::join('employee', 'assigned_branches.brwp_id', '=', 'employee.brwp_id')
-       ->join('employment_status', 'employee.es_id', '=', 'employment_status.es_id')
-
-        ->where('employee.is_deleted', 0, )
-       ->where('assigned_branches.ut_id', Auth::user()->ut_id)
+            'num_active' => $employeesBase()
+                ->join('employment_status', 'employee.es_id', '=', 'employment_status.es_id')
+                ->where('employment_status.is_current_employee', 1)->count(),
+            'todays_birthdays' => $employeesBase()
+                ->join('employment_status', 'employee.es_id', '=', 'employment_status.es_id')
                 ->where('employment_status.is_current_employee', 1)
                 ->whereRaw("DATE_FORMAT(employee.date_of_birth, '%m-%d') = ?", [$today])
                 ->get(),
-            'todays_work_anniv' =>  AssignedBranchModel::join('employee', 'assigned_branches.brwp_id', '=', 'employee.brwp_id')
-       ->join('employment_status', 'employee.es_id', '=', 'employment_status.es_id')
-
-            ->where('employee.is_deleted', 0, )
-
-       ->where('assigned_branches.ut_id', Auth::user()->ut_id)
+            'todays_work_anniv' => $employeesBase()
+                ->join('employment_status', 'employee.es_id', '=', 'employment_status.es_id')
                 ->where('employment_status.is_current_employee', 1)
                 ->whereRaw("DATE_FORMAT(employee.date_employed, '%m-%d') = ?", [$today])
                 // Only real anniversaries — at least the 1st year (skip staff hired this year).
@@ -117,7 +117,8 @@ class SystemController extends Controller
                 ->get(),
 
             // Count cards
-            'num_salary_grades' => SalaryGrade::where('is_active', 1)->count(),
+            'num_branches' => BranchWorkplaceModel::where('is_deleted', 0)->where('is_visible', 1)->count(),
+            'num_salary_grades' => SalaryGrade::where('is_active', 1)->where('is_deleted', 0)->count(),
             'num_positions' => PositionsModel::where('is_deleted', 0)->where('is_archived', 0)->count(),
             'num_employment_statuses' => EmploymentStatusModel::where('is_deleted', 0)->count(),
             'num_biometric_ids' => BiometricId::where('is_deleted', 0)->count(),

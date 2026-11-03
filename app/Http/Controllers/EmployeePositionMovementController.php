@@ -16,8 +16,8 @@ class EmployeePositionMovementController extends Controller
     public function index($employee_id)
     {
         $employee = EmployeeModel::where('employee_id', $employee_id)
-            ->join('branches_workplaces', 'employee.brwp_id', '=', 'branches_workplaces.id')
-            ->join('positions', 'employee.position_id', '=', 'positions.position_id')
+            ->leftJoin('branches_workplaces', 'employee.brwp_id', '=', 'branches_workplaces.id')
+            ->leftJoin('positions', 'employee.position_id', '=', 'positions.position_id')
             ->select('employee.*', 'branches_workplaces.brwp_code as branch_code', 'branches_workplaces.name as branch_name', 'positions.position_name')
             ->first();
 
@@ -29,8 +29,8 @@ class EmployeePositionMovementController extends Controller
         'branches_workplaces.brwp_code as branch_code',
         'branches_workplaces.name as branch_name'
     )
-    ->join('positions', 'employee_position_movement.position_id', '=', 'positions.position_id')
-    ->join('branches_workplaces', 'employee_position_movement.brwp_id', '=', 'branches_workplaces.id')
+    ->leftJoin('positions', 'employee_position_movement.position_id', '=', 'positions.position_id')
+    ->leftJoin('branches_workplaces', 'employee_position_movement.brwp_id', '=', 'branches_workplaces.id')
     ->where('employee_position_movement.employee_id', $employee_id)
     ->where('employee_position_movement.is_deleted', 0)
     ->orderBy('employee_position_movement.effective_date', 'desc')

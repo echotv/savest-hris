@@ -49,8 +49,8 @@ class WeeklySchedulesController extends Controller
     });
 
     $employee = EmployeeModel::where('employee_id', $employee_id)
-        ->join('branches_workplaces', 'employee.brwp_id', '=', 'branches_workplaces.id')
-        ->join('positions', 'employee.position_id', '=', 'positions.position_id')
+        ->leftJoin('branches_workplaces', 'employee.brwp_id', '=', 'branches_workplaces.id')
+        ->leftJoin('positions', 'employee.position_id', '=', 'positions.position_id')
         ->select('employee.*', 'branches_workplaces.brwp_code as branch_code', 'branches_workplaces.name as branch_name', 'positions.position_name')
         ->first();
 
@@ -130,8 +130,8 @@ return view('employee.update_weekly_schedules', compact(
 public function load_schedules($employee_id)
 {
     $employee = EmployeeModel::where('employee.employee_id', $employee_id)
-        ->join('branches_workplaces', 'employee.brwp_id', '=', 'branches_workplaces.id')
-        ->join('positions', 'employee.position_id', '=', 'positions.position_id')
+        ->leftJoin('branches_workplaces', 'employee.brwp_id', '=', 'branches_workplaces.id')
+        ->leftJoin('positions', 'employee.position_id', '=', 'positions.position_id')
         ->select('employee.*', 'branches_workplaces.brwp_code as branch_code', 'branches_workplaces.name as branch_name', 'positions.position_name')
         ->first();
 
@@ -238,7 +238,7 @@ public function load_wsl(Request $request)
 public function load_bulk_update()
 {
     $employees = EmployeeModel::join('employment_status', 'employee.es_id', '=', 'employment_status.es_id')
-    ->join('branches_workplaces', 'employee.brwp_id', '=', 'branches_workplaces.id')
+    ->leftJoin('branches_workplaces', 'employee.brwp_id', '=', 'branches_workplaces.id')
     ->where('employment_status.is_current_employee', 1)
     ->where('employee.is_deleted', 0)
     ->select(

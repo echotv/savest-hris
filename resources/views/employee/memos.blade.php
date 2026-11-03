@@ -188,7 +188,10 @@
                     </div>
 
                     <div class="col-12">
-                        <label class="form-label fw-medium text-secondary small">Employee(s) <span class="text-danger">*</span></label>
+                        <label class="form-label fw-medium text-secondary small d-flex justify-content-between align-items-center">
+                            <span>Employee(s) <span class="text-danger">*</span></span>
+                            <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2 font-12" id="selectAllEmpBtn">Select All</button>
+                        </label>
                         <select id="memo_employee_id" class="form-select form-select-sm rounded" multiple>
                             @foreach($employees as $emp)
                                 <option value="{{ $emp->employee_id }}">
@@ -289,6 +292,10 @@ $(document).ready(function () {
     const empTs = new TomSelect('#memo_employee_id', {
         maxItems: null,
         placeholder: 'Search and select employee(s)…'
+    });
+
+    $('#selectAllEmpBtn').on('click', function () {
+        empTs.addItems(Object.keys(empTs.options));
     });
 
     const fpIssued = flatpickr('#memo_date_issued', { dateFormat: 'Y-m-d' });

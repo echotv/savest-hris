@@ -7,6 +7,7 @@ use App\Models\BranchAreaMovement;
 use App\Models\BranchWorkplaceModel;
 use App\Models\SystemLogsModel;
 use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 
 class BranchAreaMovementController extends Controller
 {
@@ -83,6 +84,11 @@ class BranchAreaMovementController extends Controller
             'rows.*.brwp_ids.*'   => 'integer|exists:branches_workplaces,id',
         ]);
 
+        $conflicts = $this->findConflicts($request->rows, $request->effective_date, $request->end_date);
+        if ($conflicts) {
+            return back()->withInput()->withErrors(['rows' => $conflicts]);
+        }
+
         [$saved, $skipped] = $this->saveRows($request->rows, $request->effective_date, $request->end_date);
 
         $message = count($saved) . ' area assignment(s) saved.';
@@ -114,6 +120,11 @@ class BranchAreaMovementController extends Controller
             'rows.*.brwp_ids.*'   => 'integer|exists:branches_workplaces,id',
         ]);
 
+        $conflicts = $this->findConflicts($request->rows, $request->effective_date, $request->end_date, $request->bam_ids);
+        if ($conflicts) {
+            return back()->withInput()->withErrors(['rows' => $conflicts]);
+        }
+
         BranchAreaMovement::whereIn('bam_id', $request->bam_ids)->update(['is_deleted' => 1]);
 
         [$saved, $skipped] = $this->saveRows($request->rows, $request->effective_date, $request->end_date);
@@ -129,9 +140,47 @@ class BranchAreaMovementController extends Controller
     }
 
     /**
+     * Shared by store() and updateGroup(): checked upfront, before anything is
+     * saved. A branch's currently open assignment is never a conflict — it's
+     * superseded automatically (see closePreviousOpen()) — unless the new
+     * effective date doesn't actually come after it, or the new range overlaps
+     * an already-closed historical record, either of which blocks the whole
+     * submission with a validation error instead of being silently skipped.
+     * $excludeBamIds lets updateGroup() ignore the very records it's about to
+     * replace.
+     */
+    private function findConflicts(array $rows, string $effectiveDate, ?string $endDate, array $excludeBamIds = []): array
+    {
+        $conflicts = [];
+
+        foreach ($rows as $row) {
+            foreach ($row['brwp_ids'] as $brwpId) {
+                $branch = BranchWorkplaceModel::find($brwpId);
+                if (!$branch) {
+                    continue;
+                }
+
+                $active = $this->activeOpenRecord($brwpId, $excludeBamIds);
+                if ($active && strtotime($effectiveDate) <= strtotime($active->effective_date)) {
+                    $conflicts[] = "{$branch->brwp_code}: the new effective date must be after the current assignment's effective date ({$active->effective_date->toDateString()}).";
+                    continue;
+                }
+
+                if ($this->overlapsClosed($brwpId, $effectiveDate, $endDate, $excludeBamIds)) {
+                    $conflicts[] = "{$branch->brwp_code}: the date range overlaps with an existing area assignment for this branch.";
+                }
+            }
+        }
+
+        return $conflicts;
+    }
+
+    /**
      * Shared by store() and updateGroup(): create one BranchAreaMovement per
-     * (area, branch) pair, skipping branches that aren't actual branches,
-     * already have an open assignment, or overlap in dates.
+     * (area, branch) pair, skipping branches that aren't actual branches or
+     * whose dates overlap a closed historical record. A currently open
+     * assignment for the branch is superseded (end-dated to the day before
+     * the new one starts) rather than blocking the new row.
      */
     private function saveRows(array $rows, string $effectiveDate, ?string $endDate): array
     {
@@ -147,20 +196,12 @@ class BranchAreaMovementController extends Controller
                     continue;
                 }
 
-                $hasActive = BranchAreaMovement::where('brwp_id', $brwpId)
-                    ->where('is_deleted', 0)
-                    ->whereNull('end_date')
-                    ->exists();
-
-                if ($hasActive) {
-                    $skipped[] = "{$branch->brwp_code} (already has an open assignment)";
-                    continue;
-                }
-
-                if ($this->overlaps($brwpId, $effectiveDate, $endDate)) {
+                if ($this->overlapsClosed($brwpId, $effectiveDate, $endDate)) {
                     $skipped[] = "{$branch->brwp_code} (overlapping dates)";
                     continue;
                 }
+
+                $this->closePreviousOpen($brwpId, $effectiveDate);
 
                 BranchAreaMovement::create([
                     'brwp_id'        => $brwpId,
@@ -186,10 +227,21 @@ class BranchAreaMovementController extends Controller
             'end_date'       => 'nullable|date|after_or_equal:effective_date',
         ]);
 
-        if ($this->overlaps($movement->brwp_id, $request->effective_date, $request->end_date, $movement->bam_id)) {
+        $active = $this->activeOpenRecord($movement->brwp_id, [$movement->bam_id]);
+        if ($active && strtotime($request->effective_date) <= strtotime($active->effective_date)) {
+            return back()->withInput()->withErrors([
+                'effective_date' => "The new effective date must be after the current assignment's effective date ({$active->effective_date->toDateString()})."
+            ]);
+        }
+
+        if ($this->overlapsClosed($movement->brwp_id, $request->effective_date, $request->end_date, [$movement->bam_id])) {
             return back()->withInput()->withErrors([
                 'effective_date' => 'The date range overlaps with an existing area assignment for this branch.'
             ]);
+        }
+
+        if ($active) {
+            $active->update(['end_date' => Carbon::parse($request->effective_date)->subDay()->toDateString()]);
         }
 
         $movement->update([
@@ -225,26 +277,48 @@ class BranchAreaMovementController extends Controller
         return back()->with('success', 'Area assignment deleted successfully.');
     }
 
-    private function overlaps($brwpId, $newStart, $newEnd, $excludeId = null)
+    /**
+     * The one non-deleted, currently open (end_date IS NULL) record for this
+     * branch, if any — the record that a new/edited assignment would supersede.
+     */
+    private function activeOpenRecord($brwpId, array $excludeIds = [])
     {
         return BranchAreaMovement::where('brwp_id', $brwpId)
             ->where('is_deleted', 0)
-            ->when($excludeId, fn ($q) => $q->where('bam_id', '!=', $excludeId))
+            ->whereNull('end_date')
+            ->when($excludeIds, fn ($q) => $q->whereNotIn('bam_id', $excludeIds))
+            ->first();
+    }
+
+    /**
+     * Ends the branch's currently open assignment the day before the new one
+     * starts, so a fresh assignment supersedes it instead of conflicting with it.
+     */
+    private function closePreviousOpen($brwpId, $newEffectiveDate, array $excludeIds = []): void
+    {
+        $active = $this->activeOpenRecord($brwpId, $excludeIds);
+
+        if ($active) {
+            $active->update(['end_date' => Carbon::parse($newEffectiveDate)->subDay()->toDateString()]);
+        }
+    }
+
+    /**
+     * Overlap against already-closed (end_date IS NOT NULL) historical records
+     * only — an open record is handled separately via closePreviousOpen().
+     */
+    private function overlapsClosed($brwpId, $newStart, $newEnd, array $excludeIds = [])
+    {
+        return BranchAreaMovement::where('brwp_id', $brwpId)
+            ->where('is_deleted', 0)
+            ->whereNotNull('end_date')
+            ->when($excludeIds, fn ($q) => $q->whereNotIn('bam_id', $excludeIds))
             ->where(function ($q) use ($newStart, $newEnd) {
                 if ($newEnd) {
-                    $q->where(function ($q2) use ($newStart, $newEnd) {
-                        $q2->whereNotNull('end_date')
-                           ->whereDate('effective_date', '<=', $newEnd)
-                           ->whereDate('end_date', '>=', $newStart);
-                    })->orWhere(function ($q2) use ($newEnd) {
-                        $q2->whereNull('end_date')
-                           ->whereDate('effective_date', '<=', $newEnd);
-                    });
+                    $q->whereDate('effective_date', '<=', $newEnd)
+                      ->whereDate('end_date', '>=', $newStart);
                 } else {
-                    $q->where(function ($q2) use ($newStart) {
-                        $q2->whereNotNull('end_date')
-                           ->whereDate('end_date', '>=', $newStart);
-                    })->orWhereNull('end_date');
+                    $q->whereDate('end_date', '>=', $newStart);
                 }
             })
             ->exists();

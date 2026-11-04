@@ -150,7 +150,13 @@
                                 <td class="ps-4 fw-semibold">{{ $user->name }}</td>
                                 <td>{{ $user->username }}</td>
                                 <td class="text-muted">{{ $user->email }}</td>
-                                <td>{{ $user->userType->user_type ?? '' }}</td>
+                                <td>
+                                    @if ($user->userType)
+                                        <span class="badge" style="background:{{ $user->userType->color_code ?? '#1b55e2' }};color:#fff;">
+                                            {{ $user->userType->user_type }}
+                                        </span>
+                                    @endif
+                                </td>
                                 <td>
                                     @if ($user->is_active == 1)
                                         <span class="badge badge-light-success">Active</span>
